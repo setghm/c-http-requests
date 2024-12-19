@@ -1,0 +1,18 @@
+#ifndef _REQUESTER_STRUCTS_HTTP_METHOD_TEXT_H
+#define _REQUESTER_STRUCTS_HTTP_METHOD_TEXT_H
+
+#define _HttpMethodTextExpanded(name) name
+#define HttpMethodText(method) _HttpMethodTextExpanded(method##_TEXT)
+
+#define HTTP_METHOD_GET_TEXT "GET"
+#define HTTP_METHOD_POST_TEXT "POST"
+#define HTTP_METHOD_PUT_TEXT "PUT"
+#define HTTP_METHOD_PATCH_TEXT "PATCH"
+#define HTTP_METHOD_DELETE_TEXT "DELETE"
+#define HTTP_METHOD_HEAD_TEXT "HEAD"
+#define HTTP_METHOD_OPTIONS_TEXT "OPTIONS"
+#define HTTP_METHOD_CONNECT_TEXT "CONNECT"
+#define HTTP_METHOD_TRACE_TEXT "TRACE"
+#define HTTP_METHOD_UNKNOWN_TEXT ""
+
+#endif

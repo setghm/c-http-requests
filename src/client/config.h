@@ -1,0 +1,10 @@
+#ifndef _REQUESTER_CLIENT_CONFIG_H
+#define _REQUESTER_CLIENT_CONFIG_H
+
+#define CHUNK_SIZE_RESPONSE_READ 1024
+
+#define DEFAULT_ACCEPT_ENCODING "gzip,deflate,br"
+#define DEFAULT_ACCEPT "*/*"
+#define DEFAULT_CONNECTION "keep-alive"
+
+#endif
