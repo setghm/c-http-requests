@@ -1,156 +1,157 @@
 #include "http_client.h"
 
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
 
 // requester
-#include "config.h"
 #include <helpers/helpers.h>
 
+#include "config.h"
+
 HttpResponse* HttpClient_Send(HttpRequest* req) {
-	RETURN_NULL_IF_NULL(req);
-	RETURN_NULL_IF_NULL(req->url);
-	RETURN_NULL_IF_NULL(req->url->host);
-	RETURN_NULL_IF_NULL(req->url->resource);
-	
-	/*
-		Attempt to open the connection to host.
-	*/
-	ClientSocket* cs = ClientSocket_Open(req->url->host, req->url->port);
+    RETURN_NULL_IF_NULL(req);
+    RETURN_NULL_IF_NULL(req->url);
+    RETURN_NULL_IF_NULL(req->url->host);
+    RETURN_NULL_IF_NULL(req->url->resource);
 
-	RETURN_NULL_IF_NULL(cs);
+    /*
+            Attempt to open the connection to host.
+    */
+    ClientSocket* cs = ClientSocket_Open(req->url->host, req->url->port);
 
-	/*
-		Set http request needed headers.
-	*/
-	StringMap_AddIfNotExists(req->headers, "Host", req->url->host);
-	StringMap_AddIfNotExists(req->headers, "Accept", DEFAULT_ACCEPT);
-	StringMap_AddIfNotExists(req->headers, "Accept-Encoding", DEFAULT_ACCEPT_ENCODING);
-	StringMap_AddIfNotExists(req->headers, "Connection", DEFAULT_CONNECTION);
-	StringMap_AddIfNotExists(req->headers, "User-Agent", UA_DEFAULT);
+    RETURN_NULL_IF_NULL(cs);
 
-	if (req->content != HTTP_NO_CONTENT) {
-		/*
-			Add content length header.
-		*/
-		char content_length[20] = { 0 };
-		sprintf(content_length, "%llu", req->content->content_length);
+    /*
+            Set http request needed headers.
+    */
+    StringMap_AddIfNotExists(req->headers, "Host", req->url->host);
+    StringMap_AddIfNotExists(req->headers, "Accept", DEFAULT_ACCEPT);
+    StringMap_AddIfNotExists(req->headers, "Accept-Encoding", DEFAULT_ACCEPT_ENCODING);
+    StringMap_AddIfNotExists(req->headers, "Connection", DEFAULT_CONNECTION);
+    StringMap_AddIfNotExists(req->headers, "User-Agent", UA_DEFAULT);
 
-		StringMap_AddIfNotExists(req->headers, "Content-Length", content_length);
+    if (req->content != HTTP_NO_CONTENT) {
+        /*
+                Add content length header.
+        */
+        char content_length[20] = {0};
+        sprintf(content_length, "%llu", req->content->content_length);
 
-		/*
-			Add content type header.
-		*/
-		char* content_type = MIMEType_ToString(req->content->content_type);
+        StringMap_AddIfNotExists(req->headers, "Content-Length", content_length);
 
-		StringMap_AddIfNotExists(req->headers, "Content-Type", content_type);
-	}
+        /*
+                Add content type header.
+        */
+        char* content_type = MIMEType_ToString(req->content->content_type);
 
-	/*
-		Get the HttpRequest as string and send it.
-	*/
-	char* req_str = HttpRequest_ToString(req);
+        StringMap_AddIfNotExists(req->headers, "Content-Type", content_type);
+    }
 
-	if (req_str != NULL) {
-		size_t req_str_size = strlen(req_str);
+    /*
+            Get the HttpRequest as string and send it.
+    */
+    char* req_str = HttpRequest_ToString(req);
 
-		ClientSocket_Write(cs, req_str, req_str_size);
+    if (req_str != NULL) {
+        size_t req_str_size = strlen(req_str);
 
-		free(req_str);
-	}
+        ClientSocket_Write(cs, req_str, req_str_size);
 
-	/*
-		Send the request content if it has.
-	*/
-	if (req->content != HTTP_NO_CONTENT) {
-		HttpContent_Send(req->content, cs);
-	}
+        free(req_str);
+    }
 
-	/*
-		Close this socket peer.
-	*/
-	ClientSocket_FinishWritting(cs);
+    /*
+            Send the request content if it has.
+    */
+    if (req->content != HTTP_NO_CONTENT) {
+        HttpContent_Send(req->content, cs);
+    }
 
-	/*
-		Get the response.
+    /*
+            Close this socket peer.
+    */
+    ClientSocket_FinishWritting(cs);
 
-		Read byte by byte until the payload delimiter.
+    /*
+            Get the response.
 
-		Then, parse the http response.
-	*/
-	size_t buffer_size = CHUNK_SIZE_RESPONSE_READ;
-	size_t total_bytes_read = 0, bytes_read;
+            Read byte by byte until the payload delimiter.
 
-	char* buffer = (char*)malloc(buffer_size);
+            Then, parse the http response.
+    */
+    size_t buffer_size = CHUNK_SIZE_RESPONSE_READ;
+    size_t total_bytes_read = 0, bytes_read;
 
-	if (buffer) {
-		memset(buffer, 0, buffer_size);
+    char* buffer = (char*)malloc(buffer_size);
 
-		byte last_byte = 0;
-		char last_bytes[4] = { 0 };
+    if (buffer) {
+        memset(buffer, 0, buffer_size);
 
-		do {
-			bytes_read = ClientSocket_Read(cs, &last_byte, 1);
+        byte last_byte = 0;
+        char last_bytes[4] = {0};
 
-			BREAK_IF_ZERO(bytes_read);
+        do {
+            bytes_read = ClientSocket_Read(cs, &last_byte, 1);
 
-			last_bytes[0] = last_bytes[1];
-			last_bytes[1] = last_bytes[2];
-			last_bytes[2] = last_bytes[3];
-			last_bytes[3] = last_byte;
+            BREAK_IF_ZERO(bytes_read);
 
-			buffer[total_bytes_read] = last_byte;
+            last_bytes[0] = last_bytes[1];
+            last_bytes[1] = last_bytes[2];
+            last_bytes[2] = last_bytes[3];
+            last_bytes[3] = last_byte;
 
-			total_bytes_read++;
+            buffer[total_bytes_read] = last_byte;
 
-			/*
-				Realloc the buffer if more space is needed.
-			*/
-			if (total_bytes_read > buffer_size - 1) {
-				size_t new_buffer_size = buffer_size + CHUNK_SIZE_RESPONSE_READ;
-				
-				char* new_buffer = (char*)realloc(buffer, new_buffer_size);
+            total_bytes_read++;
 
-				/*
-					Break if out of memory.
-				*/
-				BREAK_IF_NULL(new_buffer);
+            /*
+                    Realloc the buffer if more space is needed.
+            */
+            if (total_bytes_read > buffer_size - 1) {
+                size_t new_buffer_size = buffer_size + CHUNK_SIZE_RESPONSE_READ;
 
-				buffer = new_buffer;
+                char* new_buffer = (char*)realloc(buffer, new_buffer_size);
 
-				memset(buffer + buffer_size, 0, buffer_size);
+                /*
+                        Break if out of memory.
+                */
+                BREAK_IF_NULL(new_buffer);
 
-				buffer_size = new_buffer_size;
-			}
+                buffer = new_buffer;
 
-		} while (!(
-			last_bytes[0] == '\r' && last_bytes[1] == '\n' &&
-			last_bytes[2] == '\r' && last_bytes[3] == '\n'
-		));
-	}
+                memset(buffer + buffer_size, 0, buffer_size);
 
-	HttpResponse* res = HttpResponse_ParseNew(buffer, total_bytes_read);
+                buffer_size = new_buffer_size;
+            }
 
-	if (res == NULL) {
-		ClientSocket_Close(cs);
-		return NULL;
-	}
+        } while (!(
+            last_bytes[0] == '\r' && last_bytes[1] == '\n' &&
+            last_bytes[2] == '\r' && last_bytes[3] == '\n'));
+    }
 
-	/*
-		Create a new StreamContent for the response, and set the client socket as source.
+    HttpResponse* res = HttpResponse_ParseNew(buffer, total_bytes_read);
 
-		The socket remains opened until the response structure is deleted.
-	*/
-	res->content = StreamContent_New(cs);
+    if (res == NULL) {
+        ClientSocket_Close(cs);
+        return NULL;
+    }
 
-	/*
-		Find the content length header and set it to StreamContent.
-	*/
-	StringPair* header = StringMap_Get(res->headers, "Content-Length");
+    /*
+            Create a new StreamContent for the response, and set the client socket as source.
 
-	if (header != NULL) {
-		res->content->content_length = parse_u64(header->value);
-	}
+            The socket remains opened until the response structure is deleted.
+    */
+    res->content = StreamContent_New(cs);
 
-	return res;
+    /*
+            Find the content length header and set it to StreamContent.
+    */
+    StringPair* header = StringMap_Get(res->headers, "Content-Length");
+
+    if (header != NULL) {
+        res->content->base.content_length = parse_u64(header->value);
+    }
+
+    return res;
 }

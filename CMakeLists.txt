@@ -6,6 +6,8 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
+#find_package(OpenSSL REQUIRED)
+
 project(requester VERSION 1.0 LANGUAGES C)
 
 list(APPEND CORE_SOURCE_FILES
@@ -100,7 +102,11 @@ list(APPEND SOURCE_FILES
 add_executable (requester ${SOURCE_FILES})
 
 target_include_directories(requester PUBLIC "src" "src/core")
-target_link_libraries(requester ws2_32)
+
+# Link libraries platform specific.
+if (WIN32)
+    target_link_libraries(requester PRIVATE ws2_32)
+endif()
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET requester PROPERTY C_STANDARD 90)

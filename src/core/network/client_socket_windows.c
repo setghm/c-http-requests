@@ -1,9 +1,14 @@
-#include <WinSock2.h>
-#include <WS2tcpip.h>
+#include "client_socket.h"
+
+// c standard library
 #include <stdio.h>
 
-#include "client_socket.h"
-#include "utils/utils.h"
+// platform-specific
+#include <WS2tcpip.h>
+#include <WinSock2.h>
+
+// requester
+#include <utils/utils.h>
 
 #define WINSOCK(cs) ((SOCKET)cs->_source)
 
@@ -20,7 +25,7 @@ ClientSocket* ClientSocket_Open(const char* host, u16 port) {
         struct addrinfo *addr_result = NULL, hints;
 
         if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-            log(LOG_ERROR, "ClientSocket", "WSA initialization error");
+            print_log(LOG_ERROR, "ClientSocket", "WSA initialization error");
             return NULL;
         }
 
@@ -36,7 +41,7 @@ ClientSocket* ClientSocket_Open(const char* host, u16 port) {
 
         result = getaddrinfo(host, port_str, &hints, &addr_result);
         if (result != 0) {
-            log(LOG_ERROR, "ClientSocket", "getaddrinfo failed");
+            print_log(LOG_ERROR, "ClientSocket", "getaddrinfo failed");
             WSACleanup();
             return NULL;
         }
@@ -49,7 +54,7 @@ ClientSocket* ClientSocket_Open(const char* host, u16 port) {
         s = socket(addr_result->ai_family, addr_result->ai_socktype, addr_result->ai_protocol);
 
         if (s == INVALID_SOCKET) {
-            log(LOG_ERROR, "ClientSocket", "Cannot create the client socket");
+            print_log(LOG_ERROR, "ClientSocket", "Cannot create the client socket");
             freeaddrinfo(addr_result);
             WSACleanup();
             return NULL;
@@ -63,7 +68,7 @@ ClientSocket* ClientSocket_Open(const char* host, u16 port) {
         // TODO: Check other addresses.
 
         if (result == SOCKET_ERROR) {
-            log(LOG_ERROR, "ClientSocket", "Cannot connect to server");
+            print_log(LOG_ERROR, "ClientSocket", "Cannot connect to server");
             closesocket(s);
             freeaddrinfo(addr_result);
             WSACleanup();
@@ -113,7 +118,7 @@ size_t ClientSocket_Read(ClientSocket* cs, const byte* buffer, size_t buffer_siz
         log(LOG_DEBUG, "ClientSocket", "Connection closed");
 
         fprintf(stderr, "[ERROR][WindowsSocket] Last error: %d\n", GetLastError());
-#endif 
+#endif
     } else if (result < 0) {
 #ifdef DEBUG
         log(LOG_ERROR, "ClientSocket", "Error receiving data");
@@ -141,7 +146,7 @@ size_t ClientSocket_Write(ClientSocket* cs, const byte* buffer, size_t buffer_si
     result = send(WINSOCK(cs), buffer, buffer_size, 0);
 
     if (result == SOCKET_ERROR) {
-        log(LOG_ERROR, "ClientSocket", "Cannot send the request");
+        print_log(LOG_ERROR, "ClientSocket", "Cannot send the request");
 
         fprintf(stderr, "[ERROR][WindowsSocket] Last error: %d\n", GetLastError());
 
@@ -162,7 +167,7 @@ boolean ClientSocket_FinishWritting(ClientSocket* cs) {
     i32 result = shutdown(WINSOCK(cs), SD_SEND);
 
     if (result == SOCKET_ERROR) {
-        log(LOG_ERROR, "Request", "Error closing this peer");
+        print_log(LOG_ERROR, "Request", "Error closing this peer");
 
         fprintf(stderr, "[ERROR][WindowsSocket] Last error: %d\n", GetLastError());
 
