@@ -16,14 +16,14 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     RETURN_NULL_IF_NULL(req->url->resource);
 
     /*
-            Attempt to open the connection to host.
+        Attempt to open the connection to host.
     */
     ClientSocket* cs = ClientSocket_Open(req->url->host, req->url->port);
 
     RETURN_NULL_IF_NULL(cs);
 
     /*
-            Set http request needed headers.
+        Set http request needed headers.
     */
     StringMap_AddIfNotExists(req->headers, "Host", req->url->host);
     StringMap_AddIfNotExists(req->headers, "Accept", DEFAULT_ACCEPT);
@@ -33,7 +33,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
 
     if (req->content != HTTP_NO_CONTENT) {
         /*
-                Add content length header.
+            Add content length header.
         */
         char content_length[20] = {0};
         sprintf(content_length, "%llu", req->content->content_length);
@@ -41,7 +41,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
         StringMap_AddIfNotExists(req->headers, "Content-Length", content_length);
 
         /*
-                Add content type header.
+            Add content type header.
         */
         char* content_type = MIMEType_ToString(req->content->content_type);
 
@@ -49,7 +49,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     }
 
     /*
-            Get the HttpRequest as string and send it.
+        Get the HttpRequest as string and send it.
     */
     char* req_str = HttpRequest_ToString(req);
 
@@ -62,19 +62,19 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     }
 
     /*
-            Send the request content if it has.
+        Send the request content if it has.
     */
     if (req->content != HTTP_NO_CONTENT) {
         HttpContent_Send(req->content, cs);
     }
 
     /*
-            Close this socket peer.
+        Close this socket peer.
     */
     ClientSocket_FinishWritting(cs);
 
     /*
-            Get the response.
+        Get the response.
 
             Read byte by byte until the payload delimiter.
 
@@ -138,14 +138,14 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     }
 
     /*
-            Create a new StreamContent for the response, and set the client socket as source.
+        Create a new StreamContent for the response, and set the client socket as source.
 
             The socket remains opened until the response structure is deleted.
     */
     res->content = StreamContent_New(cs);
 
     /*
-            Find the content length header and set it to StreamContent.
+        Find the content length header and set it to StreamContent.
     */
     StringPair* header = StringMap_Get(res->headers, "Content-Length");
 

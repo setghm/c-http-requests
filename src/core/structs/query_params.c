@@ -1,8 +1,8 @@
 #include "query_params.h"
 
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // requester
 #include <http_default.h>
@@ -21,7 +21,7 @@ StringMap* QueryParams_ParseNew(const char* src, size_t src_size) {
         start = end;
 
         /*
-                Skip '&' and '?' characters before search the next '&' delimiter.
+            Skip '&' and '?' characters before search the next '&' delimiter.
         */
         if (start[0] == '&' || start[0] == '?') {
             start++;
@@ -30,7 +30,7 @@ StringMap* QueryParams_ParseNew(const char* src, size_t src_size) {
         end = strstr(start, HTTP_DELIMITER_QUERY_PAIR);
 
         /*
-                Separate the key-value pair in a different buffer.
+            Separate the key-value pair in a different buffer.
         */
         size_t buffer_size = end ? end - start : len - (size_t)(start - src);
         char* buffer = strnclone(start, buffer_size);
@@ -40,7 +40,7 @@ StringMap* QueryParams_ParseNew(const char* src, size_t src_size) {
         free(buffer);
 
         /*
-                Append the key value pair if it was parsed correctly.
+            Append the key value pair if it was parsed correctly.
         */
         if (param) {
             StringMap_AddExisting(query_param, param);
@@ -56,12 +56,12 @@ StringPair* QueryParameter_ParseNew(const char* src, size_t src_size) {
     RETURN_NULL_IF_ZERO(src_size);
 
     /*
-            Get the position of the first '=' character.
+        Get the position of the first '=' character.
     */
     char* value_ptr = strstr(src, HTTP_DELIMITER_QUERY_VALUE);
 
     /*
-            Skip malformed key-value query pairs.
+        Skip malformed key-value query pairs.
     */
     if (value_ptr == NULL) {
         return NULL;
@@ -72,7 +72,7 @@ StringPair* QueryParameter_ParseNew(const char* src, size_t src_size) {
     param->key = strnclone(src, (size_t)(value_ptr - src));
 
     /*
-            Skip the '=' character.
+        Skip the '=' character.
     */
     value_ptr++;
 

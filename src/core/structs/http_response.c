@@ -1,13 +1,14 @@
 #include "http_response.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 // requester
-#include "http_headers.h"
 #include <http_default.h>
 #include <utils/utils.h>
+
+#include "http_headers.h"
 
 HttpResponse* HttpResponse_New(void) {
     HttpResponse* res = (HttpResponse*)malloc(sizeof(HttpResponse));
@@ -47,7 +48,7 @@ char* HttpResponse_StartLineToString(HttpResponse* res) {
     len += strlen(version_str);
 
     /*
-            Alloc the string.
+        Alloc the string.
     */
     char* str = (char*)malloc(len);
 
