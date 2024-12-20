@@ -9,7 +9,10 @@
 typedef struct _HttpRequest HttpRequest;
 
 struct _HttpRequest {
-    struct _HttpMessage;
+    /*
+        The base structure.
+    */
+    HttpMessage _base;
 
     URL* url;
 

@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 // requester
 #include <helpers/helpers.h>
@@ -25,27 +26,27 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     /*
         Set http request needed headers.
     */
-    StringMap_AddIfNotExists(req->headers, "Host", req->url->host);
-    StringMap_AddIfNotExists(req->headers, "Accept", DEFAULT_ACCEPT);
-    StringMap_AddIfNotExists(req->headers, "Accept-Encoding", DEFAULT_ACCEPT_ENCODING);
-    StringMap_AddIfNotExists(req->headers, "Connection", DEFAULT_CONNECTION);
-    StringMap_AddIfNotExists(req->headers, "User-Agent", UA_DEFAULT);
+    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Host", req->url->host);
+    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Accept", DEFAULT_ACCEPT);
+    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Accept-Encoding", DEFAULT_ACCEPT_ENCODING);
+    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Connection", DEFAULT_CONNECTION);
+    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "User-Agent", UA_DEFAULT);
 
-    if (req->content != HTTP_NO_CONTENT) {
+    if (BaseHttpMessage(req)->content != HTTP_NO_CONTENT) {
         /*
             Add content length header.
         */
         char content_length[20] = {0};
-        sprintf(content_length, "%llu", req->content->content_length);
+        sprintf(content_length, "%llu", BaseHttpMessage(req)->content->content_length);
 
-        StringMap_AddIfNotExists(req->headers, "Content-Length", content_length);
+        StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Content-Length", content_length);
 
         /*
             Add content type header.
         */
-        char* content_type = MIMEType_ToString(req->content->content_type);
+        char* content_type = MIMEType_ToString(BaseHttpMessage(req)->content->content_type);
 
-        StringMap_AddIfNotExists(req->headers, "Content-Type", content_type);
+        StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Content-Type", content_type);
     }
 
     /*
@@ -64,8 +65,8 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     /*
         Send the request content if it has.
     */
-    if (req->content != HTTP_NO_CONTENT) {
-        HttpContent_Send(req->content, cs);
+    if (BaseHttpMessage(req)->content != HTTP_NO_CONTENT) {
+        HttpContent_Send(BaseHttpMessage(req)->content, cs);
     }
 
     /*
@@ -142,15 +143,15 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
 
             The socket remains opened until the response structure is deleted.
     */
-    res->content = StreamContent_New(cs);
+    BaseHttpMessage(res)->content = StreamContent_New(cs);
 
     /*
         Find the content length header and set it to StreamContent.
     */
-    StringPair* header = StringMap_Get(res->headers, "Content-Length");
+    StringPair* header = StringMap_Get(BaseHttpMessage(res)->headers, "Content-Length");
 
     if (header != NULL) {
-        res->content->base.content_length = parse_u64(header->value);
+        BaseHttpContent(BaseHttpMessage(res)->content)->content_length = parse_u64(header->value);
     }
 
     return res;

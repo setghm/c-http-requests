@@ -12,9 +12,9 @@ ByteBufferContent* ByteBufferContent_New(const byte* buffer, size_t buffer_size)
     if (content) {
         memset(content, 0, sizeof(ByteBufferContent));
 
-        content->_kind = _HTTP_CONTENT_KIND_BYTE_BUFFER;
+        BaseHttpContent(content)->_kind = _HTTP_CONTENT_KIND_BYTE_BUFFER;
+        BaseHttpContent(content)->content_length = buffer_size;
 
-        content->content_length = buffer_size;
         content->_buffer = strnclone(buffer, buffer_size);
     }
 
@@ -42,7 +42,7 @@ FileContent* FileContent_New(const char* file_name) {
     if (content) {
         memset(content, 0, sizeof(FileContent));
 
-        content->_kind = _HTTP_CONTENT_KIND_FILE;
+        BaseHttpContent(content)->_kind = _HTTP_CONTENT_KIND_FILE;
 
         content->_file_name = strclone(file_name);
 
@@ -54,7 +54,7 @@ FileContent* FileContent_New(const char* file_name) {
         if (file) {
             fseek(file, 0, SEEK_END);
             
-            content->content_length = ftell(file);
+            BaseHttpContent(content)->content_length = ftell(file);
 
             fclose(file);
         }
@@ -106,7 +106,7 @@ StreamContent* StreamContent_New(ClientSocket* source) {
     if (content) {
         memset(content, 0, sizeof(StreamContent));
 
-        content->_kind = _HTTP_CONTENT_KIND_FILE;
+        BaseHttpContent(content)->_kind = _HTTP_CONTENT_KIND_FILE;
 
         content->_source = source;
     }

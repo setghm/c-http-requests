@@ -11,6 +11,8 @@
 #define HTTP_NO_CONTENT ((HttpContent*)0)
 #define STREAM_CONTENT_SEND_ALL -1
 
+#define BaseHttpContent(derived) ((HttpContent*)derived)
+
 typedef enum __HttpContentKind _HttpContentKind;
 typedef struct _HttpContent HttpContent;
 typedef struct _ByteBufferContent ByteBufferContent;
@@ -54,19 +56,19 @@ struct _HttpContent {
 };
 
 struct _ByteBufferContent {
-    struct _HttpContent;
+    HttpContent _base;
 
     byte* _buffer;
 };
 
 struct _FileContent {
-    struct _HttpContent;
+    HttpContent _base;
 
     char* _file_name;
 };
 
 struct _StreamContent {
-    struct _HttpContent;
+    HttpContent _base;
 
     ClientSocket* _source;
 };

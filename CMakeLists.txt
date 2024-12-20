@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.8)
 
+project(requester VERSION 1.0 LANGUAGES C)
+
 # MSVC hot reload.
 if (POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
@@ -7,8 +9,6 @@ if (POLICY CMP0141)
 endif()
 
 #find_package(OpenSSL REQUIRED)
-
-project(requester VERSION 1.0 LANGUAGES C)
 
 list(APPEND CORE_SOURCE_FILES
     "src/core/core.h"
@@ -108,6 +108,7 @@ if (WIN32)
     target_link_libraries(requester PRIVATE ws2_32)
 endif()
 
+# Set C standard to C11 because C11 supports anonymous structures.
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET requester PROPERTY C_STANDARD 90)
 endif()

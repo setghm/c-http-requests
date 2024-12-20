@@ -19,7 +19,7 @@ HttpRequest* HttpRequest_New(void) {
         req->method = HTTP_DEFAULT_REQUEST_METHOD;
         req->version = HTTP_DEFAULT_REQUEST_VERSION;
 
-        req->headers = StringMap_New();
+        BaseHttpMessage(req)->headers = StringMap_New();
     }
 
     return req;

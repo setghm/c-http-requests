@@ -10,7 +10,10 @@
 typedef struct _HttpResponse HttpResponse;
 
 struct _HttpResponse {
-    struct _HttpMessage;
+    /*
+        The base structure
+    */
+    HttpMessage _base;
 
     HttpVersion version;
 
