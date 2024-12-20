@@ -11,7 +11,7 @@ char* strclone(const char* src) {
     return strnclone(src, strlen(src));
 }
 
-char* strnclone(const char* src, size_t length) {
+char* strnclone(const char* src, const size_t length) {
     RETURN_NULL_IF_NULL(src);
     RETURN_NULL_IF_ZERO(length);
 
@@ -36,7 +36,7 @@ void strreplace(const char** dest, const char* src) {
     *dest = strclone(src);
 }
 
-void strnreplace(const char** dest, const char* src, size_t length) {
+void strnreplace(const char** dest, const char* src, const size_t length) {
     RETURN_IF_NULL(src);
     RETURN_IF_NULL(dest);
     RETURN_IF_NULL(*dest);

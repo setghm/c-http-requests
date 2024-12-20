@@ -5,7 +5,7 @@
 // requester
 #include "url_protocol_text.h"
 
-URLProtocol URLProtocol_FromString(const char* src, size_t src_size) {
+URLProtocol URLProtocol_FromString(const char* src, const size_t src_size) {
     if (strncmp(src, URLProtocolText(URL_PROTOCOL_HTTP), src_size) == 0) {
         return URL_PROTOCOL_HTTP;
     }
@@ -19,7 +19,7 @@ URLProtocol URLProtocol_FromString(const char* src, size_t src_size) {
     return URL_PROTOCOL_UNKNOWN;
 }
 
-const char* URLProtocol_ToString(URLProtocol protocol) {
+const char* URLProtocol_ToString(const URLProtocol protocol) {
     switch (protocol) {
         case URL_PROTOCOL_HTTP:
             return URL_PROTOCOL_HTTP_TEXT;
@@ -27,7 +27,6 @@ const char* URLProtocol_ToString(URLProtocol protocol) {
             return URL_PROTOCOL_HTTPS_TEXT;
         case URL_PROTOCOL_WS:
             return URL_PROTOCOL_WS_TEXT;
+        default: return "";
     }
-
-    return "";
 }

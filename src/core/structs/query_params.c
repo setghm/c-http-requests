@@ -8,14 +8,14 @@
 #include <http_default.h>
 #include <utils/utils.h>
 
-StringMap* QueryParams_ParseNew(const char* src, size_t src_size) {
+StringMap* QueryParams_ParseNew(const char* src, const size_t src_size) {
     RETURN_NULL_IF_NULL(src);
     RETURN_NULL_IF_ZERO(src_size);
 
     StringMap* query_param = StringMap_New();
-    size_t len = strlen(src);
+    const size_t len = strlen(src);
 
-    char *start, *end = src;
+    const char *start, *end = src;
 
     do {
         start = end;
@@ -32,7 +32,7 @@ StringMap* QueryParams_ParseNew(const char* src, size_t src_size) {
         /*
             Separate the key-value pair in a different buffer.
         */
-        size_t buffer_size = end ? end - start : len - (size_t)(start - src);
+        const size_t buffer_size = end ? end - start : len - (size_t)(start - src);
         char* buffer = strnclone(start, buffer_size);
 
         StringPair* param = QueryParameter_ParseNew(buffer, buffer_size);
@@ -51,14 +51,14 @@ StringMap* QueryParams_ParseNew(const char* src, size_t src_size) {
     return query_param;
 }
 
-StringPair* QueryParameter_ParseNew(const char* src, size_t src_size) {
+StringPair* QueryParameter_ParseNew(const char* src, const size_t src_size) {
     RETURN_NULL_IF_NULL(src);
     RETURN_NULL_IF_ZERO(src_size);
 
     /*
         Get the position of the first '=' character.
     */
-    char* value_ptr = strstr(src, HTTP_DELIMITER_QUERY_VALUE);
+    const char* value_ptr = strstr(src, HTTP_DELIMITER_QUERY_VALUE);
 
     /*
         Skip malformed key-value query pairs.
@@ -91,7 +91,7 @@ char* QueryParams_ToString(StringMap* query_params) {
     size_t index = 0;
 
     for (index = 0; index < query_params->length; index++) {
-        StringPair* param = StringMap_GetAt(query_params, index);
+        const StringPair* param = StringMap_GetAt(query_params, index);
 
         /*
             Add the length of the name, the length of the value and the character '='.
@@ -110,7 +110,7 @@ char* QueryParams_ToString(StringMap* query_params) {
         Alloc size for the string.
     */
     size_t i;
-    char* str = (char*)malloc(len);
+    char* str = malloc(len);
 
     if (str) {
         memset(str, 0, len);
@@ -119,7 +119,7 @@ char* QueryParams_ToString(StringMap* query_params) {
             Dump the values.
         */
         for (index = 0, i = 0; index < query_params->length; index++) {
-            StringPair* param = StringMap_GetAt(query_params, index);
+            const StringPair* param = StringMap_GetAt(query_params, index);
 
             if (index < query_params->length - 1) {
                 i += sprintf((str + i), "%s=%s&", param->key, param->value);

@@ -1,7 +1,7 @@
 #include "http_status.h"
 #include "http_status_text.h"
 
-const char* HttpStatus_ToString(HttpStatus status) {
+const char* HttpStatus_ToString(const HttpStatus status) {
     switch (status) {
         /** INFORMATIONAL STATUSES 1XX **/
         case HTTP_STATUS_CONTINUE:
@@ -136,7 +136,7 @@ const char* HttpStatus_ToString(HttpStatus status) {
             return HttpStatusText(510);
         case HTTP_STATUS_NETWORK_AUTHENTICATION_REQUIRED:
             return HttpStatusText(511);
-    }
 
-    return HTTP_STATUS_UNKNOWN;
+        default: return HTTP_STATUS_UNKNOWN;
+    }
 }

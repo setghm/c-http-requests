@@ -10,7 +10,7 @@ int main(void) {
 
 	if (res == HTTP_INVALID_RESPONSE) {
 		puts("Cannot get the HttpResponse");
-		return 0;
+		return -1;
 	}
 
 	printf("Http response: %d\n", res->status);
@@ -23,7 +23,7 @@ int main(void) {
 	printf("Http response headers: {\n");
 
 	for (i = 0; i < res->headers->length; i++) {
-		StringPair* header = StringMap_GetAt(res->headers, i);
+		const StringPair* header = StringMap_GetAt(res->headers, i);
 
 		printf("\t%s: \"%s\"\n", header->key, header->value);
 	}
@@ -35,7 +35,7 @@ int main(void) {
 	*/
 	puts("------- Http response content -------");
 
-	char* buffer[256] = { 0 };
+	const char buffer[256] = { 0 };
 	size_t bytes_read = 0;
 
 	do {
@@ -46,7 +46,7 @@ int main(void) {
 			fputs(buffer, stdout);
 		}
 
-	} while (bytes_read != 0);
+	} while (bytes_read == 256);
 
 	puts("\n------- Http response content end -------\n");
 

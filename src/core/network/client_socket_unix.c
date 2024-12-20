@@ -8,6 +8,7 @@
 // platform-specific
 #include <netdb.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 
 // requester
@@ -22,17 +23,14 @@ ClientSocket* ClientSocket_Open(const char* host, u16 port) {
         /*
             Create unix socket.
         */
-        int sockfd;  // Socket file descriptor
-        int port;
-        int n;
-        int result;
+        int fd;  // Socket file descriptor
+        int result = 0;
         struct sockaddr_in server_addr;
-        struct hostent* server;
-        char buffer[256];
+        struct hostent* host_info;
 
-        sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        fd = socket(AF_INET, SOCK_STREAM, 0);
 
-        if (sockfd < 0) {
+        if (fd < 0) {
             print_log(LOG_ERROR, "ClientSocket", "UnixSocket: Cannot create the socket");
             return NULL;
         }
@@ -40,9 +38,9 @@ ClientSocket* ClientSocket_Open(const char* host, u16 port) {
         /*
             Attempt to resolve the host name into an IP address.
         */
-        server = gethostbyname(host);
+        host_info = gethostbyname(host);
 
-        if (server == NULL) {
+        if (host_info == NULL) {
             print_log(LOG_ERROR, "ClientSocket", "UnixSocket: No such host");
             return NULL;
         }
@@ -50,15 +48,32 @@ ClientSocket* ClientSocket_Open(const char* host, u16 port) {
         /*
             Setup server structure and attempt to connect.
         */
+        size_t i = 0;
+
         memset(&server_addr, 0, sizeof(server_addr));
         server_addr.sin_family = AF_INET;
-        memcpy(server->h_addr_list[0], &server_addr.sin_addr.s_addr, server->h_length);
-
         server_addr.sin_port = htons(port);
 
-        result = connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+        while (host_info->h_addr_list[i] != NULL) {
+            const struct in_addr* address = (struct in_addr*) host_info->h_addr_list[i];
 
-        if (result < 0) {
+            fprintf(stderr, "[DEBUG][ClientSocket] Connecting to: %s...\n", inet_ntoa(*address));
+
+            /*
+                Copy the next address.
+            */
+            memcpy(&server_addr.sin_addr.s_addr, address, sizeof(server_addr.sin_addr));
+
+            /*
+                Attempt to connect to server.
+            */
+            result = connect(fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+
+            if (result == 0) break;
+            i++;
+        }
+
+        if (result != 0) {
             print_log(LOG_ERROR, "ClientSocket", "Unix Sockets: Error cannot connect to server.");
             return NULL;
         }
@@ -68,7 +83,7 @@ ClientSocket* ClientSocket_Open(const char* host, u16 port) {
         */
         memset(cs, 0, sizeof(ClientSocket));
 
-        cs->_source = sockfd;
+        cs->_source = (void*)fd;
         cs->is_open = true;
     }
 
@@ -83,12 +98,12 @@ void ClientSocket_Close(ClientSocket* cs) {
     free(cs);
 }
 
-size_t ClientSocket_Read(ClientSocket* cs, const byte* buffer, size_t buffer_size) {
+size_t ClientSocket_Read(const ClientSocket* cs, const byte* buffer, const size_t buffer_size) {
     RETURN_ZERO_IF_NULL(cs);
     RETURN_ZERO_IF_NULL(buffer);
     RETURN_ZERO_IF_ZERO(buffer_size);
 
-    i64 result = read(UNIXSOCK(cs), buffer, buffer_size);
+    const i64 result = read(UNIXSOCK(cs), (void*)buffer, buffer_size);
 
     if (result < 0) {
         print_log(LOG_ERROR, "ClientSocket", "Error while receiving data");
@@ -98,12 +113,12 @@ size_t ClientSocket_Read(ClientSocket* cs, const byte* buffer, size_t buffer_siz
     return (size_t)result;
 }
 
-size_t ClientSocket_Write(ClientSocket* cs, const byte* buffer, size_t buffer_size) {
+size_t ClientSocket_Write(const ClientSocket* cs, const byte* buffer, const size_t buffer_size) {
     RETURN_ZERO_IF_NULL(cs);
     RETURN_ZERO_IF_NULL(buffer);
     RETURN_ZERO_IF_ZERO(buffer_size);
 
-    i64 result = write(UNIXSOCK(cs), buffer, buffer_size);
+    const i64 result = write(UNIXSOCK(cs), buffer, buffer_size);
 
     if (result < 0) {
         print_log(LOG_ERROR, "ClientSocket", "Error while sending data");
@@ -113,10 +128,10 @@ size_t ClientSocket_Write(ClientSocket* cs, const byte* buffer, size_t buffer_si
     return (size_t)result;
 }
 
-boolean ClientSocket_FinishWritting(ClientSocket* cs) {
+boolean ClientSocket_FinishWriting(const ClientSocket* cs) {
     RETURN_ZERO_IF_NULL(cs);
 
-    int result = shutdown(UNIXSOCK(cs), SHUT_WR);
+    const i64 result = shutdown(UNIXSOCK(cs), SHUT_WR);
 
     if (result < 0) {
         print_log(LOG_ERROR, "ClientSocket", "Cannot close this peer");

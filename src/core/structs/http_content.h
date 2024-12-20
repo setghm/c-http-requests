@@ -95,7 +95,7 @@ FileContent* FileContent_New(const char* file_name);
 
 void FileContent_Delete(FileContent* content);
 
-size_t FileContent_Send(FileContent* content, ClientSocket* cs);
+size_t FileContent_Send(const FileContent* content, ClientSocket* cs);
 
 /*
     Creates a new StreamContent struct that reads data from a client socket.
@@ -104,9 +104,9 @@ StreamContent* StreamContent_New(ClientSocket* source);
 
 void StreamContent_Delete(StreamContent* content);
 
-size_t StreamContent_Read(StreamContent* content, const byte* buffer, size_t buffer_size);
+size_t StreamContent_Read(const StreamContent* content, const byte* buffer, size_t buffer_size);
 
-size_t StreamContent_ReadToFile(StreamContent* content, const char* file_name);
+size_t StreamContent_ReadToFile(const StreamContent* content, const char* file_name);
 
 /*
     Reads the content from the source and writes it to the provided socket, this function

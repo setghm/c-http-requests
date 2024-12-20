@@ -59,8 +59,8 @@ MIMEType MIMEType_FromFileName(const char* file_name) {
     /*
         Find the extension position.
     */
-    char* ext_start = NULL;
-    char* period;
+    const char* ext_start = NULL;
+    const char* period = NULL;
 
     do {
         ext_start = period;
@@ -78,7 +78,9 @@ MIMEType MIMEType_FromFileName(const char* file_name) {
     /*
         If found, start comparing each well-known extension.
     */
-    for (size_t i = 0; i < ARRAY_SIZE(mime_map); ++i) {
+    size_t i;
+
+    for (i = 0; i < ARRAY_SIZE(mime_map); ++i) {
         if (strcmp(ext_start, mime_map[i].extension) == 0) {
             return mime_map[i].mime_type;
         }
@@ -88,9 +90,9 @@ MIMEType MIMEType_FromFileName(const char* file_name) {
 }
 
 #define MIME_TYPE_CHECK(target) \
-    if (strncmp(target##_TEXT, src, src_size)) return target
+    if (strncmp(target##_TEXT, src, src_size) == 0) return target
 
-MIMEType MIMEType_FromString(const char* src, size_t src_size) {
+MIMEType MIMEType_FromString(const char* src, const size_t src_size) {
     if (src == NULL || src_size == 0) {
         return MIME_UNKNOWN;
     }

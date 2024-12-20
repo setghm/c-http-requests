@@ -1,8 +1,6 @@
 #ifndef _REQUESTER_STRUCTS_HTTP_STATUS_H
 #define _REQUESTER_STRUCTS_HTTP_STATUS_H
 
-#include <stddef.h>
-
 typedef enum _HttpStatus HttpStatus;
 
 enum _HttpStatus {

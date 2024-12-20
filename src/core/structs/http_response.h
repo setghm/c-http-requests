@@ -1,7 +1,8 @@
 #ifndef _REQUESTER_STRUCTS_HTTP_RESPONSE_H
 #define _REQUESTER_STRUCTS_HTTP_RESPONSE_H
 
-#include "http_message.h"
+#include "string_map.h"
+#include "http_content.h"
 #include "http_status.h"
 #include "http_version.h"
 
@@ -10,10 +11,9 @@
 typedef struct _HttpResponse HttpResponse;
 
 struct _HttpResponse {
-    /*
-        The base structure
-    */
-    HttpMessage _base;
+    StringMap* headers;
+
+    StreamContent* content;
 
     HttpVersion version;
 
@@ -24,7 +24,7 @@ HttpResponse* HttpResponse_New(void);
 
 void HttpResponse_Delete(HttpResponse* res);
 
-char* HttpResponse_StartLineToString(HttpResponse* res);
+char* HttpResponse_StartLineToString(const HttpResponse* res);
 
 char* HttpResponse_ToString(HttpResponse* res);
 

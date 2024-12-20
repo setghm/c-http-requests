@@ -26,27 +26,27 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     /*
         Set http request needed headers.
     */
-    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Host", req->url->host);
-    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Accept", DEFAULT_ACCEPT);
-    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Accept-Encoding", DEFAULT_ACCEPT_ENCODING);
-    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Connection", DEFAULT_CONNECTION);
-    StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "User-Agent", UA_DEFAULT);
+    StringMap_AddIfNotExists(req->headers, "Host", req->url->host);
+    StringMap_AddIfNotExists(req->headers, "Accept", DEFAULT_ACCEPT);
+    StringMap_AddIfNotExists(req->headers, "Accept-Encoding", DEFAULT_ACCEPT_ENCODING);
+    StringMap_AddIfNotExists(req->headers, "Connection", DEFAULT_CONNECTION);
+    StringMap_AddIfNotExists(req->headers, "User-Agent", UA_DEFAULT);
 
-    if (BaseHttpMessage(req)->content != HTTP_NO_CONTENT) {
+    if (req->content != HTTP_NO_CONTENT) {
         /*
             Add content length header.
         */
         char content_length[20] = {0};
-        sprintf(content_length, "%llu", BaseHttpMessage(req)->content->content_length);
+        sprintf(content_length, "%llu", req->content->content_length);
 
-        StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Content-Length", content_length);
+        StringMap_AddIfNotExists(req->headers, "Content-Length", content_length);
 
         /*
             Add content type header.
         */
-        char* content_type = MIMEType_ToString(BaseHttpMessage(req)->content->content_type);
+        const char* content_type = MIMEType_ToString(req->content->content_type);
 
-        StringMap_AddIfNotExists(BaseHttpMessage(req)->headers, "Content-Type", content_type);
+        StringMap_AddIfNotExists(req->headers, "Content-Type", content_type);
     }
 
     /*
@@ -55,9 +55,9 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     char* req_str = HttpRequest_ToString(req);
 
     if (req_str != NULL) {
-        size_t req_str_size = strlen(req_str);
+        const size_t req_str_size = strlen(req_str);
 
-        ClientSocket_Write(cs, req_str, req_str_size);
+        ClientSocket_Write(cs, (const byte*) req_str, req_str_size);
 
         free(req_str);
     }
@@ -65,14 +65,14 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     /*
         Send the request content if it has.
     */
-    if (BaseHttpMessage(req)->content != HTTP_NO_CONTENT) {
-        HttpContent_Send(BaseHttpMessage(req)->content, cs);
+    if (req->content != HTTP_NO_CONTENT) {
+        HttpContent_Send(req->content, cs);
     }
 
     /*
         Close this socket peer.
     */
-    ClientSocket_FinishWritting(cs);
+    ClientSocket_FinishWriting(cs);
 
     /*
         Get the response.
@@ -90,7 +90,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
         memset(buffer, 0, buffer_size);
 
         byte last_byte = 0;
-        char last_bytes[4] = {0};
+        byte last_bytes[4] = {0};
 
         do {
             bytes_read = ClientSocket_Read(cs, &last_byte, 1);
@@ -102,15 +102,15 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
             last_bytes[2] = last_bytes[3];
             last_bytes[3] = last_byte;
 
-            buffer[total_bytes_read] = last_byte;
+            buffer[total_bytes_read] = (char)last_byte;
 
             total_bytes_read++;
 
             /*
-                    Realloc the buffer if more space is needed.
+                Reallocate the buffer if more space is needed.
             */
             if (total_bytes_read > buffer_size - 1) {
-                size_t new_buffer_size = buffer_size + CHUNK_SIZE_RESPONSE_READ;
+                const size_t new_buffer_size = buffer_size + CHUNK_SIZE_RESPONSE_READ;
 
                 char* new_buffer = (char*)realloc(buffer, new_buffer_size);
 
@@ -143,15 +143,15 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
 
             The socket remains opened until the response structure is deleted.
     */
-    BaseHttpMessage(res)->content = StreamContent_New(cs);
+    res->content = StreamContent_New(cs);
 
     /*
         Find the content length header and set it to StreamContent.
     */
-    StringPair* header = StringMap_Get(BaseHttpMessage(res)->headers, "Content-Length");
+    const StringPair* header = StringMap_Get(res->headers, "Content-Length");
 
     if (header != NULL) {
-        BaseHttpContent(BaseHttpMessage(res)->content)->content_length = parse_u64(header->value);
+        BaseHttpContent(res->content)->content_length = parse_u64(header->value);
     }
 
     return res;

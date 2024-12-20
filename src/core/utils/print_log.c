@@ -1,11 +1,11 @@
-#include "logs.h"
+#include "print_log.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #include "data_types_aliases.h"
 
-void log(LogType type, const byte* tag, const byte* message) {
+void print_log(const LogType type, const char* tag, const char* message) {
     char type_str[20] = {0};
 
     switch (type) {

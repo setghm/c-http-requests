@@ -22,8 +22,8 @@ list(APPEND CORE_SOURCE_FILES
     "src/core/utils/float_string.h"
     "src/core/utils/int_string.c"
     "src/core/utils/int_string.h"
-    "src/core/utils/logs.c"
-    "src/core/utils/logs.h"
+    "src/core/utils/print_log.c"
+    "src/core/utils/print_log.h"
     "src/core/utils/pointers.h"
     "src/core/utils/strings.h"
     "src/core/utils/strings.c"
@@ -37,7 +37,6 @@ list(APPEND CORE_SOURCE_FILES
     "src/core/structs/http_content.h"
     "src/core/structs/http_headers.c"
     "src/core/structs/http_headers.h"
-    "src/core/structs/http_message.h"
     "src/core/structs/http_method.c"
     "src/core/structs/http_method.h"
     "src/core/structs/http_method_text.h"
@@ -108,7 +107,6 @@ if (WIN32)
     target_link_libraries(requester PRIVATE ws2_32)
 endif()
 
-# Set C standard to C11 because C11 supports anonymous structures.
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET requester PROPERTY C_STANDARD 90)
 endif()

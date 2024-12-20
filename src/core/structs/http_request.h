@@ -1,18 +1,18 @@
 #ifndef _REQUESTER_STRUCTS_HTTP_REQUEST_H
 #define _REQUESTER_STRUCTS_HTTP_REQUEST_H
 
-#include "http_message.h"
+#include "string_map.h"
 #include "http_method.h"
 #include "http_version.h"
+#include "http_content.h"
 #include "url.h"
 
 typedef struct _HttpRequest HttpRequest;
 
 struct _HttpRequest {
-    /*
-        The base structure.
-    */
-    HttpMessage _base;
+    StringMap* headers;
+
+    HttpContent* content;
 
     URL* url;
 

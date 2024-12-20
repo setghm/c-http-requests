@@ -40,20 +40,21 @@ void URL_ResourceParse(URL* url, const char* src) {
     RETURN_IF_NULL(url);
     RETURN_IF_NULL(src);
 
-    size_t len = strlen(src);
-    size_t res_len, query_len;
+    const size_t len = strlen(src);
+    size_t res_len = 0, query_len;
 
     char* buffer = NULL;
     char* res_start = strstr(src, HTTP_DELIMITER_URL_RESOURCE);
-    char* query_start = strstr(src, HTTP_DELIMITER_URL_QUERY);
-    char* frag_start = strstr(src, HTTP_DELIMITER_URL_FRAGMENT);
+    const char* query_start = strstr(src, HTTP_DELIMITER_URL_QUERY);
+    const char* frag_start = strstr(src, HTTP_DELIMITER_URL_FRAGMENT);
 
     /*
         Get the resource path or set it (if empty).
     */
     if (res_start) {
-        res_len = query_start ? query_start - res_start : frag_start ? query_start - res_start
-                                                                     : len - (size_t)(res_start - src);
+        res_len = query_start ? query_start - res_start :
+            frag_start ? frag_start - res_start :
+            len - (size_t)(res_start - src);
 
         if (res_len != 0) {
             url->resource = strnclone(res_start, res_len);
@@ -103,7 +104,7 @@ URL* URL_ParseNew(const char* src) {
     URL* url = URL_New();
     char* buffer;
 
-    size_t src_len = strlen(src);
+    const size_t src_len = strlen(src);
 
     /*
         Store all locations and lengths.
@@ -120,9 +121,7 @@ URL* URL_ParseNew(const char* src) {
            user_len = 0,
            pass_len = 0,
            host_len = 0,
-           port_len = 0,
-           res_len = 0,
-           query_len = 0;
+           port_len = 0;
 
     /*
         Get the protocol location (the URL schema).
@@ -139,9 +138,15 @@ URL* URL_ParseNew(const char* src) {
 
         free(buffer);
     }
+    else {
+        /*
+            Malformed URL.
+        */
+        return url;
+    }
 
     /*
-        Get user name and password (if included).
+        Get username and password (if included).
         First, check if the '@' character is present.
     */
     delimiter = strstr(host_start, HTTP_DELIMITER_URL_HOST);
@@ -195,10 +200,11 @@ URL* URL_ParseNew(const char* src) {
     query_start = strstr(host_start, HTTP_DELIMITER_URL_QUERY);
     frag_start = strstr(host_start, HTTP_DELIMITER_URL_FRAGMENT);
 
-    host_len = port_start ? port_start - host_start : res_start ? res_start - host_start
-                                                  : query_start ? query_start - host_start
-                                                  : frag_start  ? frag_start - host_start
-                                                                : src_len - (size_t)(host_start - src);
+    host_len = port_start ? port_start - host_start :
+        res_start ? res_start - host_start :
+        query_start ? query_start - host_start :
+        frag_start  ? frag_start - host_start :
+        src_len - (size_t)(host_start - src);
 
     if (host_len != 0) {
         url->host = strnclone(host_start, host_len);
@@ -339,7 +345,7 @@ char* URL_ToString(URL* url) {
         }
 
         if (res_str) {
-            i += sprintf((str + i), "%s", res_str);
+            sprintf((str + i), "%s", res_str);
         }
     }
 
@@ -352,7 +358,7 @@ char* URL_ToString(URL* url) {
     return str;
 }
 
-char* URL_ResourceToString(URL* url) {
+char* URL_ResourceToString(const URL* url) {
     RETURN_NULL_IF_NULL(url);
     RETURN_NULL_IF_NULL(url->resource);
 

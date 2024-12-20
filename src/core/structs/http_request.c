@@ -19,7 +19,7 @@ HttpRequest* HttpRequest_New(void) {
         req->method = HTTP_DEFAULT_REQUEST_METHOD;
         req->version = HTTP_DEFAULT_REQUEST_VERSION;
 
-        BaseHttpMessage(req)->headers = StringMap_New();
+        req->headers = StringMap_New();
     }
 
     return req;
@@ -39,7 +39,7 @@ char* HttpRequest_StartLineToString(HttpRequest* req) {
     RETURN_NULL_IF_NULL(req);
 
     /*
-        Calculate the lenght of the string.
+        Calculate the length of the string.
     */
     size_t len = 3;  // NULL character + 2 whitespaces
 
@@ -174,8 +174,8 @@ HttpRequest* HttpRequest_ParseNew(const char* src, size_t src_size) {
     /*
         Read line by line.
     */
-    char* start = src;
-    char* end = strstr(start, HTTP_DELIMITER_MESSAGE_LINE);
+    const char* start = src;
+    const char* end = strstr(start, HTTP_DELIMITER_MESSAGE_LINE);
 
     /*
          Parse request line.
@@ -195,13 +195,13 @@ HttpRequest* HttpRequest_ParseNew(const char* src, size_t src_size) {
     char* payload_start = strstr(src, HTTP_DELIMITER_MESSAGE_PAYLOAD);
 
     /*
-        Parse request headears.
+        Parse request headers.
     */
     while (end && end != payload_start) {
         start = end + 2;
         end = strstr(start, HTTP_DELIMITER_MESSAGE_LINE);
 
-        size_t buffer_len = end ? (size_t)(end - start) : src_size - (size_t)(start - src);
+        const size_t buffer_len = end ? (size_t)(end - start) : src_size - (size_t)(start - src);
 
         if (buffer_len != 0) {
             char* buffer = strnclone(start, buffer_len);

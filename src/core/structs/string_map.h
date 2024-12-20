@@ -73,6 +73,8 @@ boolean StringMap_Add(StringMap* sm, const char* key, const char* value);
     Creates a new key-value string pair from the given key and value and adds
     it to the map only if the given key is not added already.
 
+    Returns true if the value is added, false otherwise.
+
     The key and the value must be NULL-terminated strings.
 */
 boolean StringMap_AddIfNotExists(StringMap* sm, const char* key, const char* value);

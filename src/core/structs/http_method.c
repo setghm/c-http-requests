@@ -5,39 +5,28 @@
 // requester
 #include "http_method_text.h"
 
-HttpMethod HttpMethod_FromString(const char* src, size_t src_size) {
-    if (strncmp(src, HttpMethodText(HTTP_METHOD_GET), src_size) == 0) {
+#define CHECK_HTTP_METHOD_STRING(method)\
+    if (strncmp(src, HttpMethodText(method), src_size) == 0) return method
+
+HttpMethod HttpMethod_FromString(const char* src, const size_t src_size) {
+    if (src == NULL || src_size == 0) {
         return HTTP_METHOD_GET;
     }
-    if (strncmp(src, HttpMethodText(HTTP_METHOD_HEAD), src_size) == 0) {
-        return HTTP_METHOD_HEAD;
-    }
-    if (strncmp(src, HttpMethodText(HTTP_METHOD_POST), src_size) == 0) {
-        return HTTP_METHOD_POST;
-    }
-    if (strncmp(src, HttpMethodText(HTTP_METHOD_PUT), src_size) == 0) {
-        return HTTP_METHOD_PUT;
-    }
-    if (strncmp(src, HttpMethodText(HTTP_METHOD_PATCH), src_size) == 0) {
-        return HTTP_METHOD_PATCH;
-    }
-    if (strncmp(src, HttpMethodText(HTTP_METHOD_DELETE), src_size) == 0) {
-        return HTTP_METHOD_DELETE;
-    }
-    if (strncmp(src, HttpMethodText(HTTP_METHOD_OPTIONS), src_size) == 0) {
-        return HTTP_METHOD_OPTIONS;
-    }
-    if (strncmp(src, HttpMethodText(HTTP_METHOD_TRACE), src_size) == 0) {
-        return HTTP_METHOD_TRACE;
-    }
-    if (strncmp(src, HttpMethodText(HTTP_METHOD_CONNECT), src_size) == 0) {
-        return HTTP_METHOD_CONNECT;
-    }
+
+    CHECK_HTTP_METHOD_STRING(HTTP_METHOD_GET);
+    CHECK_HTTP_METHOD_STRING(HTTP_METHOD_HEAD);
+    CHECK_HTTP_METHOD_STRING(HTTP_METHOD_POST);
+    CHECK_HTTP_METHOD_STRING(HTTP_METHOD_PUT);
+    CHECK_HTTP_METHOD_STRING(HTTP_METHOD_PATCH);
+    CHECK_HTTP_METHOD_STRING(HTTP_METHOD_DELETE);
+    CHECK_HTTP_METHOD_STRING(HTTP_METHOD_OPTIONS);
+    CHECK_HTTP_METHOD_STRING(HTTP_METHOD_TRACE);
+    CHECK_HTTP_METHOD_STRING(HTTP_METHOD_CONNECT);
 
     return HTTP_METHOD_GET;
 }
 
-const char* HttpMethod_ToString(HttpMethod method) {
+const char* HttpMethod_ToString(const HttpMethod method) {
     switch (method) {
         case HTTP_METHOD_GET:
             return HTTP_METHOD_GET_TEXT;
@@ -57,7 +46,6 @@ const char* HttpMethod_ToString(HttpMethod method) {
             return HTTP_METHOD_CONNECT_TEXT;
         case HTTP_METHOD_TRACE:
             return HTTP_METHOD_TRACE_TEXT;
+        default: return "";
     }
-
-    return "";
 }

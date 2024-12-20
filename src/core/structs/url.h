@@ -38,6 +38,6 @@ URL* URL_ParseNew(const char* src);
 
 char* URL_ToString(URL* url);
 
-char* URL_ResourceToString(URL* url);
+char* URL_ResourceToString(const URL* url);
 
 #endif

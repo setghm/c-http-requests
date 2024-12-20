@@ -26,16 +26,16 @@ void HttpResponse_Delete(HttpResponse* res) {
     RETURN_IF_NULL(res);
 
     StringMap_Delete(res->headers);
-    HttpContent_Delete(res->content);
+    HttpContent_Delete(BaseHttpContent(res->content));
 
     free(res);
 }
 
-char* HttpResponse_StartLineToString(HttpResponse* res) {
+char* HttpResponse_StartLineToString(const HttpResponse* res) {
     RETURN_NULL_IF_NULL(res);
 
     /*
-        Calculate the lenght of the string.
+        Calculate the length of the string.
     */
     size_t len = 3;  // NULL character + 2 whitespaces
 
@@ -117,11 +117,15 @@ char* HttpResponse_ToString(HttpResponse* res) {
     return str;
 }
 
-void HttpResponse_ParseStartLine(HttpResponse* res, const char* src, size_t src_size) {
+void HttpResponse_ParseStartLine(HttpResponse* res, const char* src, const size_t src_size) {
+    RETURN_IF_NULL(res);
+    RETURN_IF_NULL(src);
+    RETURN_IF_ZERO(src_size);
+
     char arg1[20] = {0};
     int arg2 = 0;
 
-    int result = sscanf(src, "%s %d", arg1, &arg2);
+    const int result = sscanf(src, "%s %d", arg1, &arg2);
 
     if (result == 2) {
         res->version = HttpVersion_FromString(arg1, 20);
@@ -129,7 +133,7 @@ void HttpResponse_ParseStartLine(HttpResponse* res, const char* src, size_t src_
     }
 }
 
-HttpResponse* HttpResponse_ParseNew(const char* src, size_t src_size) {
+HttpResponse* HttpResponse_ParseNew(const char* src, const size_t src_size) {
     RETURN_NULL_IF_NULL(src);
     RETURN_NULL_IF_ZERO(src_size);
 
@@ -141,14 +145,14 @@ HttpResponse* HttpResponse_ParseNew(const char* src, size_t src_size) {
     /*
         Read line by line.
     */
-    char* start = src;
-    char* end = strstr(src, HTTP_DELIMITER_MESSAGE_LINE);
+    const char* start = src;
+    const char* end = strstr(src, HTTP_DELIMITER_MESSAGE_LINE);
 
     /*
         Parse response line.
     */
     if (end) {
-        size_t buffer_len = (size_t)(end - start);
+        const size_t buffer_len = (size_t)(end - start);
         char* buffer = strnclone(src, buffer_len);
 
         HttpResponse_ParseStartLine(res, buffer, buffer_len);
@@ -170,12 +174,12 @@ HttpResponse* HttpResponse_ParseNew(const char* src, size_t src_size) {
         start = end + 2;
         end = strstr(start, HTTP_DELIMITER_MESSAGE_LINE);
 
-        size_t buffer_len = end ? (size_t)(end - start) : src_size - (size_t)(start - src);
+        const size_t buffer_len = end ? (size_t)(end - start) : src_size - (size_t)(start - src);
 
         if (buffer_len != 0) {
             char* buffer = strnclone(start, buffer_len);
 
-            StringMap* header = HttpHeader_ParseNew(buffer, buffer_len);
+            StringPair* header = HttpHeader_ParseNew(buffer, buffer_len);
 
             free(buffer);
 

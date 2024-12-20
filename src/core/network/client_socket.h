@@ -18,10 +18,10 @@ ClientSocket* ClientSocket_Open(const char* host, u16 port);
 
 void ClientSocket_Close(ClientSocket* cs);
 
-size_t ClientSocket_Read(ClientSocket* cs, const byte* buffer, size_t buffer_size);
+size_t ClientSocket_Read(const ClientSocket* cs, const byte* buffer, size_t buffer_size);
 
-size_t ClientSocket_Write(ClientSocket* cs, const byte* buffer, size_t buffer_size);
+size_t ClientSocket_Write(const ClientSocket* cs, const byte* buffer, size_t buffer_size);
 
-boolean ClientSocket_FinishWritting(ClientSocket* cs);
+boolean ClientSocket_FinishWriting(const ClientSocket* cs);
 
 #endif

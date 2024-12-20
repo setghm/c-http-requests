@@ -1,12 +1,14 @@
 #include "http_content.h"
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 // requester
 #include <config.h>
 #include <utils/utils.h>
 
-ByteBufferContent* ByteBufferContent_New(const byte* buffer, size_t buffer_size) {
+ByteBufferContent* ByteBufferContent_New(const byte* buffer, const size_t buffer_size) {
     ByteBufferContent* content = (ByteBufferContent*)malloc(sizeof(ByteBufferContent));
 
     if (content) {
@@ -15,7 +17,9 @@ ByteBufferContent* ByteBufferContent_New(const byte* buffer, size_t buffer_size)
         BaseHttpContent(content)->_kind = _HTTP_CONTENT_KIND_BYTE_BUFFER;
         BaseHttpContent(content)->content_length = buffer_size;
 
-        content->_buffer = strnclone(buffer, buffer_size);
+        content->_buffer = malloc(buffer_size);
+        memset(content->_buffer, 0, buffer_size);
+        memcpy(content->_buffer, buffer, buffer_size);
     }
 
     return content;
@@ -33,11 +37,11 @@ size_t ByteBufferContent_Send(ByteBufferContent* content, ClientSocket* cs) {
     RETURN_ZERO_IF_NULL(content);
     RETURN_ZERO_IF_NULL(cs);
 
-    return ClientSocket_Write(cs, content->_buffer, content->content_length);
+    return ClientSocket_Write(cs, content->_buffer, BaseHttpContent(content)->content_length);
 }
 
 FileContent* FileContent_New(const char* file_name) {
-    FileContent* content = (FileContent*)malloc(sizeof(FileContent));
+    FileContent* content = malloc(sizeof(FileContent));
 
     if (content) {
         memset(content, 0, sizeof(FileContent));
@@ -71,7 +75,7 @@ void FileContent_Delete(FileContent* content) {
     free(content);
 }
 
-size_t FileContent_Send(FileContent* content, ClientSocket* cs) {
+size_t FileContent_Send(const FileContent* content, ClientSocket* cs) {
     RETURN_ZERO_IF_NULL(content);
     RETURN_ZERO_IF_NULL(cs);
 
@@ -114,7 +118,7 @@ StreamContent* StreamContent_New(ClientSocket* source) {
     return content;
 }
 
-size_t StreamContent_Read(StreamContent* content, const byte* buffer, size_t buffer_size) {
+size_t StreamContent_Read(const StreamContent* content, const byte* buffer, const size_t buffer_size) {
     RETURN_ZERO_IF_NULL(content);
     RETURN_ZERO_IF_NULL(buffer);
     RETURN_ZERO_IF_ZERO(buffer_size);
@@ -122,7 +126,7 @@ size_t StreamContent_Read(StreamContent* content, const byte* buffer, size_t buf
     return ClientSocket_Read(content->_source, buffer, buffer_size);
 }
 
-size_t StreamContent_ReadToFile(StreamContent* content, const char* file_name) {
+size_t StreamContent_ReadToFile(const StreamContent* content, const char* file_name) {
     RETURN_ZERO_IF_NULL(content);
     RETURN_ZERO_IF_NULL(file_name);
 
@@ -133,7 +137,7 @@ size_t StreamContent_ReadToFile(StreamContent* content, const char* file_name) {
     size_t total_bytes_read = 0;
 
     if (file) {
-        byte buffer[CHUNK_SIZE_STREAM_TO_FILE_READ] = {0};
+        const byte buffer[CHUNK_SIZE_STREAM_TO_FILE_READ] = {0};
         size_t bytes_read = 0;
 
         do {

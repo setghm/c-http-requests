@@ -7,14 +7,14 @@
 #include <http_default.h>
 #include <utils/utils.h>
 
-StringPair* HttpHeader_ParseNew(const char* src, size_t src_size) {
+StringPair* HttpHeader_ParseNew(const char* src, const size_t src_size) {
     RETURN_NULL_IF_NULL(src);
     RETURN_NULL_IF_ZERO(src_size);
 
     /*
         Find the ':' delimiter.
     */
-    char* delimiter_pos = strstr(src, HTTP_DELIMITER_HEADER);
+    const char* delimiter_pos = strstr(src, HTTP_DELIMITER_HEADER);
 
     if (delimiter_pos == NULL) {
         return NULL;
@@ -25,14 +25,14 @@ StringPair* HttpHeader_ParseNew(const char* src, size_t src_size) {
     /*
         Get the header name.
     */
-    size_t name_len = (size_t)(delimiter_pos - src);
+    const size_t name_len = (size_t)(delimiter_pos - src);
 
     header->key = strnclone(src, name_len);
 
     /*
         Get the header value.
     */
-    char* value_pos = delimiter_pos + 1;
+    const char* value_pos = delimiter_pos + 1;
 
     /*
         Trim the value from left.
@@ -54,7 +54,7 @@ char* HttpHeaders_ToString(StringMap* headers) {
     size_t index = 0;
 
     for (index = 0; index < headers->length; index++) {
-        StringPair* header = StringMap_GetAt(headers, index);
+        const StringPair* header = StringMap_GetAt(headers, index);
 
         /*
             Add the length of the name, the length of the value and the string ": ".
@@ -80,7 +80,7 @@ char* HttpHeaders_ToString(StringMap* headers) {
             Dump the values.
         */
         for (index = 0, i = 0; index < headers->length; index++) {
-            StringPair* header = StringMap_GetAt(headers, index);
+            const StringPair* header = StringMap_GetAt(headers, index);
 
             i += sprintf((str + i), "%s: %s\r\n", header->key, header->value);
         }

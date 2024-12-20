@@ -88,19 +88,22 @@ boolean StringMap_Add(StringMap* sm, const char* key, const char* value) {
     RETURN_ZERO_IF_NULL(value);
 
     /*
-        Check if there aren't a existing item with the given key.
+        Check if there aren't an existing item with the given key.
     */
     StringPair* existing = StringMap_Get(sm, key);
 
-    if (existing) {
+    if (existing != NULL) {
         existing->value = value;
-    } else {
-        StringPair* pair = StringPair_New();
-        pair->key = strclone(key);
-        pair->value = strclone(value);
-
-        StringMap_AddExisting(sm, pair);
+        return false;
     }
+
+    StringPair* pair = StringPair_New();
+    pair->key = strclone(key);
+    pair->value = strclone(value);
+
+    StringMap_AddExisting(sm, pair);
+
+    return true;
 }
 
 boolean StringMap_AddIfNotExists(StringMap* sm, const char* key, const char* value) {
@@ -109,9 +112,9 @@ boolean StringMap_AddIfNotExists(StringMap* sm, const char* key, const char* val
     RETURN_ZERO_IF_NULL(value);
 
     /*
-        Check if there aren't a existing item with the given key.
+        Check if there aren't an existing item with the given key.
     */
-    StringPair* existing = StringMap_Get(sm, key);
+    const StringPair* existing = StringMap_Get(sm, key);
 
     if (existing == NULL) {
         StringPair* pair = StringPair_New();
@@ -119,7 +122,11 @@ boolean StringMap_AddIfNotExists(StringMap* sm, const char* key, const char* val
         pair->value = strclone(value);
 
         StringMap_AddExisting(sm, pair);
+
+        return true;
     }
+
+    return false;
 }
 
 boolean StringMap_AddExisting(StringMap* sm, StringPair* pair) {
@@ -129,20 +136,20 @@ boolean StringMap_AddExisting(StringMap* sm, StringPair* pair) {
     RETURN_ZERO_IF_NULL(pair->value);
 
     /*
-        Check if there aren't a existing item with the given key.
+        Check if there aren't an existing item with the given key.
     */
     StringPair* existing = StringMap_Get(sm, pair->key);
 
-    if (existing) {
-        StringMap_Remove(sm, existing);
+    if (existing != NULL) {
+        StringMap_Remove(sm, existing->key);
 
         StringPair_Delete(existing);
     }
 
-    _StringMapItem* item = (StringMap*)malloc(sizeof(_StringMapItem));
+    _StringMapItem* item = (_StringMapItem*)malloc(sizeof(_StringMapItem));
 
     if (!item) {
-        return;
+        return false;
     }
 
     memset(item, 0, sizeof(_StringMapItem));
@@ -159,6 +166,8 @@ boolean StringMap_AddExisting(StringMap* sm, StringPair* pair) {
 
     sm->_end = item;
     sm->length++;
+
+    return true;
 }
 
 void StringMap_AddMany(StringMap* sm, size_t count, ...) {
