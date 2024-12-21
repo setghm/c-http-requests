@@ -1,6 +1,8 @@
 #ifndef _REQUESTER_UTILS_DATA_TYPES_ALIASES
 #define _REQUESTER_UTILS_DATA_TYPES_ALIASES
 
+typedef void* pointer;
+
 typedef unsigned char byte;
 
 typedef unsigned char u8;

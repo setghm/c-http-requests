@@ -8,7 +8,7 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-#find_package(OpenSSL REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 list(APPEND CORE_SOURCE_FILES
     "src/core/core.h"
@@ -30,7 +30,11 @@ list(APPEND CORE_SOURCE_FILES
     "src/core/utils/math.h"
 
     "src/core/network/network.h"
+    "src/core/network/certs_location.h"
+    "src/core/network/client_socket.c"
     "src/core/network/client_socket.h"
+    "src/core/network/secure_client_layer.c"
+    "src/core/network/secure_client_layer.h"
 
     "src/core/structs/structs.h"
     "src/core/structs/http_content.c"
@@ -80,6 +84,8 @@ list(APPEND CLIENT_SOURCE_FILES
 
     "src/client/http_client.h"
     "src/client/http_client.c"
+    "src/client/http_client_abstractions.c"
+    "src/client/http_client_abstractions.h"
 )
 
 list(APPEND HELPERS_SOURCE_FILES
@@ -100,9 +106,13 @@ list(APPEND SOURCE_FILES
 
 add_executable (requester ${SOURCE_FILES})
 
+# Setup internal include directories.
 target_include_directories(requester PUBLIC "src" "src/core")
 
-# Link libraries platform specific.
+# Link OpenSSL.
+target_link_libraries(requester PRIVATE OpenSSL::SSL)
+
+# Link platform-specific libraries.
 if (WIN32)
     target_link_libraries(requester PRIVATE ws2_32)
 endif()

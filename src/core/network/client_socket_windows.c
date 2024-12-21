@@ -12,86 +12,92 @@
 
 #define WINSOCK(cs) ((SOCKET)cs->_source)
 
-ClientSocket* ClientSocket_Open(const char* host, u16 port) {
-    ClientSocket* cs = (ClientSocket*)malloc(sizeof(ClientSocket));
+boolean ClientSocket_Connect(ClientSocket* cs, const char* host, const u16 port) {
+    RETURN_ZERO_IF_NULL(cs);
+    RETURN_ZERO_IF_NULL(host);
+    RETURN_ZERO_IF_ZERO(port);
 
-    if (cs) {
-        /*
-            Initialize Windows Socket version 2.2.
-        */
-        WSADATA wsa_data;
-        int result;
-        char port_str[6] = {0};
-        struct addrinfo *addr_result = NULL, hints;
+    /*
+        Initialize Windows Socket version 2.2.
+    */
+    WSADATA wsa_data;
+    int result;
+    char port_str[6] = {0};
+    struct addrinfo *addr_result = NULL, hints;
 
-        if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-            print_log(LOG_ERROR, "ClientSocket", "WSA initialization error");
-            return NULL;
-        }
-
-        /*
-            Try to resolve the host name into an IP address.
-        */
-        memset(&hints, 0, sizeof(hints));
-        hints.ai_family = AF_INET;
-        hints.ai_socktype = SOCK_STREAM;
-        hints.ai_protocol = IPPROTO_TCP;
-
-        sprintf(port_str, "%u\0", port);
-
-        result = getaddrinfo(host, port_str, &hints, &addr_result);
-        if (result != 0) {
-            print_log(LOG_ERROR, "ClientSocket", "getaddrinfo failed");
-            WSACleanup();
-            return NULL;
-        }
-
-        /*
-            Create a new socket.
-        */
-        SOCKET s = INVALID_SOCKET;
-
-        s = socket(addr_result->ai_family, addr_result->ai_socktype, addr_result->ai_protocol);
-
-        if (s == INVALID_SOCKET) {
-            print_log(LOG_ERROR, "ClientSocket", "Cannot create the client socket");
-            freeaddrinfo(addr_result);
-            WSACleanup();
-            return NULL;
-        }
-
-        /*
-            Attempt connection to host.
-        */
-        result = connect(s, addr_result->ai_addr, (int)addr_result->ai_addrlen);
-
-        // TODO: Check other addresses.
-
-        if (result == SOCKET_ERROR) {
-            print_log(LOG_ERROR, "ClientSocket", "Cannot connect to server");
-            closesocket(s);
-            freeaddrinfo(addr_result);
-            WSACleanup();
-            s = INVALID_SOCKET;
-            return NULL;
-        }
-
-        freeaddrinfo(addr_result);
-
-        /*
-            Save the socket into the ClientSocket struct.
-        */
-        memset(cs, 0, sizeof(ClientSocket));
-
-        cs->_source = s;
-        cs->is_open = true;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
+        print_log(LOG_ERROR, "ClientSocket", "WSA initialization error");
+        return false;
     }
+
+    /*
+        Try to resolve the host name into an IP address.
+    */
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    sprintf(port_str, "%u", port);
+
+    result = getaddrinfo(host, port_str, &hints, &addr_result);
+    if (result != 0) {
+        print_log(LOG_ERROR, "ClientSocket", "getaddrinfo failed");
+        WSACleanup();
+        return false;
+    }
+
+    /*
+        Create a new socket.
+    */
+    SOCKET s = INVALID_SOCKET;
+
+    s = socket(addr_result->ai_family, addr_result->ai_socktype, addr_result->ai_protocol);
+
+    if (s == INVALID_SOCKET) {
+        print_log(LOG_ERROR, "ClientSocket", "Cannot create the client socket");
+        freeaddrinfo(addr_result);
+        WSACleanup();
+        return false;
+    }
+
+    /*
+        Attempt connection to host.
+    */
+    result = connect(s, addr_result->ai_addr, (int)addr_result->ai_addrlen);
+
+    // TODO: Check other addresses.
+
+    if (result == SOCKET_ERROR) {
+        print_log(LOG_ERROR, "ClientSocket", "Cannot connect to server");
+        closesocket(s);
+        freeaddrinfo(addr_result);
+        WSACleanup();
+        s = INVALID_SOCKET;
+        return false;
+    }
+
+    freeaddrinfo(addr_result);
+
+    /*
+        Save the socket into the ClientSocket struct.
+    */
+    cs->_source = (void*)s;
+    cs->is_open = true;
+}
+
+ClientSocket* ClientSocket_Open(const char* host, u16 port) {
+    ClientSocket* cs = ClientSocket_New();
+
+    ClientSocket_Connect(cs, host, port);
 
     return cs;
 }
 
 void ClientSocket_Close(ClientSocket* cs) {
     RETURN_IF_NULL(cs);
+
+    SecureClientLayer_Delete(cs->_secure_layer);
 
     closesocket(WINSOCK(cs));
 
@@ -100,11 +106,13 @@ void ClientSocket_Close(ClientSocket* cs) {
     free(cs);
 }
 
-size_t ClientSocket_Read(ClientSocket* cs, const byte* buffer, size_t buffer_size) {
+size_t ClientSocket_Read(ClientSocket* cs, byte* buffer, size_t buffer_size) {
     RETURN_ZERO_IF_NULL(cs);
     RETURN_ZERO_IF_NULL(buffer);
     RETURN_ZERO_IF_ZERO(buffer_size);
     RETURN_ZERO_IF_ZERO(cs->is_open);
+
+    CLIENT_SOCKET_SAFE_READ_IF_POSSIBLE(cs, buffer, buffer_size);
 
     i32 result;
     size_t bytes_received = 0;
@@ -135,10 +143,10 @@ size_t ClientSocket_Write(ClientSocket* cs, const byte* buffer, size_t buffer_si
     RETURN_ZERO_IF_NULL(cs);
     RETURN_ZERO_IF_NULL(buffer);
     RETURN_ZERO_IF_ZERO(buffer_size);
+    RETURN_ZERO_IF_ZERO(cs->is_open);
+    RETURN_ZERO_IF_ZERO(!cs->is_read_only);
 
-    if (cs->is_read_only || !cs->is_open) {
-        return 0;
-    }
+    CLIENT_SOCKET_SAFE_WRITE_IF_POSSIBLE(cs, buffer, buffer_size);
 
     i32 result;
     size_t bytes_sent;

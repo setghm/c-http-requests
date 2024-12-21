@@ -10,6 +10,16 @@
 
 #include "config.h"
 
+boolean HttpClient_Init(void) {
+    SecureClientLayers_Init();
+
+    return true;
+}
+
+void HttpClient_Cleanup(void) {
+    SecureClientLayers_Cleanup();
+}
+
 HttpResponse* HttpClient_Send(HttpRequest* req) {
     RETURN_NULL_IF_NULL(req);
     RETURN_NULL_IF_NULL(req->url);
@@ -19,9 +29,13 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     /*
         Attempt to open the connection to host.
     */
-    ClientSocket* cs = ClientSocket_Open(req->url->host, req->url->port);
+    ClientSocket* client = ClientSocket_Open(req->url->host, req->url->port);
 
-    RETURN_NULL_IF_NULL(cs);
+    if (req->url->protocol != URL_PROTOCOL_HTTP) {
+        ClientSocket_MakeSecure(client);
+    }
+
+    RETURN_NULL_IF_NULL(client);
 
     /*
         Set http request needed headers.
@@ -57,7 +71,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     if (req_str != NULL) {
         const size_t req_str_size = strlen(req_str);
 
-        ClientSocket_Write(cs, (const byte*) req_str, req_str_size);
+        ClientSocket_Write(client, (const byte*)req_str, req_str_size);
 
         free(req_str);
     }
@@ -66,20 +80,20 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
         Send the request content if it has.
     */
     if (req->content != HTTP_NO_CONTENT) {
-        HttpContent_Send(req->content, cs);
+        HttpContent_Send(req->content, client);
     }
 
     /*
         Close this socket peer.
     */
-    ClientSocket_FinishWriting(cs);
+    ClientSocket_FinishWriting(client);
 
     /*
         Get the response.
 
-            Read byte by byte until the payload delimiter.
+        Read byte by byte until the payload delimiter.
 
-            Then, parse the http response.
+        Then, parse the http response.
     */
     size_t buffer_size = CHUNK_SIZE_RESPONSE_READ;
     size_t total_bytes_read = 0, bytes_read;
@@ -93,7 +107,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
         byte last_bytes[4] = {0};
 
         do {
-            bytes_read = ClientSocket_Read(cs, &last_byte, 1);
+            bytes_read = ClientSocket_Read(client, &last_byte, 1);
 
             BREAK_IF_ZERO(bytes_read);
 
@@ -115,7 +129,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
                 char* new_buffer = (char*)realloc(buffer, new_buffer_size);
 
                 /*
-                        Break if out of memory.
+                    Break if out of memory.
                 */
                 BREAK_IF_NULL(new_buffer);
 
@@ -134,7 +148,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     HttpResponse* res = HttpResponse_ParseNew(buffer, total_bytes_read);
 
     if (res == NULL) {
-        ClientSocket_Close(cs);
+        ClientSocket_Close(client);
         return NULL;
     }
 
@@ -143,7 +157,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
 
             The socket remains opened until the response structure is deleted.
     */
-    res->content = StreamContent_New(cs);
+    res->content = StreamContent_New(client);
 
     /*
         Find the content length header and set it to StreamContent.

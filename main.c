@@ -2,11 +2,16 @@
 #include <stdio.h>
 
 int main(void) {
-	HttpRequest* req = HttpRequest_New();
+	/*
+		Initialize library.
+	*/
+	HttpClient_Init();
 
-	req->url = URL_ParseNew("https://archlinux.org/packages/?q=aqua");
-
-	HttpResponse* res = HttpClient_Send(req);
+	/*
+		Create a new http request and send it.
+	*/
+	//HttpResponse* res = HttpClient_Get("https://www.google.com/search?q=http+client");
+	HttpResponse* res = HttpClient_Get("https://archlinux.org/packages/?q=aqua");
 
 	if (res == HTTP_INVALID_RESPONSE) {
 		puts("Cannot get the HttpResponse");
@@ -50,8 +55,11 @@ int main(void) {
 
 	puts("\n------- Http response content end -------\n");
 
-	HttpRequest_Delete(req);
+	/*
+		Cleanup resources.
+	*/
 	HttpResponse_Delete(res);
+	HttpClient_Cleanup();
 
 	return 0;
 }

@@ -14,27 +14,27 @@
     if (pointer != NULL) free(pointer)
 
 #define RETURN_NULL_IF_NULL(pointer) \
-    if (pointer == NULL) return NULL
+    if ((pointer) == NULL) return NULL
 
 #define RETURN_NULL_IF_ZERO(var) \
-    if (var == 0) return NULL
+    if ((var) == 0) return NULL
 
 #define RETURN_ZERO_IF_NULL(pointer) \
-    if (pointer == NULL) return 0
+    if ((pointer) == NULL) return 0
 
 #define RETURN_ZERO_IF_ZERO(var) \
-    if (var == 0) return 0
+    if ((var) == 0) return 0
 
 #define CONTINUE_IF_NULL(pointer) \
-    if (pointer == NULL) continue
+    if ((pointer) == NULL) continue
 
 #define BREAK_IF_NULL(pointer) \
-    if (pointer == NULL) continue
+    if ((pointer) == NULL) continue
 
 #define CONTINUE_IF_ZERO(var) \
-    if (var == 0) break
+    if ((var) == 0) break
 
 #define BREAK_IF_ZERO(var) \
-    if (var == 0) break
+    if ((var) == 0) break
 
 #endif
