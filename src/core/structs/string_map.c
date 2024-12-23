@@ -74,7 +74,7 @@ StringMap* StringMap_Clone(StringMap* sm) {
     _StringMapItem* item = sm->_begin;
 
     while (item != NULL) {
-        StringMap_Add(new_sm, item->_data->key, item->_data->value);
+        StringMap_Set(new_sm, item->_data->key, item->_data->value);
 
         item = item->_next;
     }
@@ -82,7 +82,7 @@ StringMap* StringMap_Clone(StringMap* sm) {
     return new_sm;
 }
 
-boolean StringMap_Add(StringMap* sm, const char* key, const char* value) {
+boolean StringMap_Set(StringMap* sm, const char* key, const char* value) {
     RETURN_ZERO_IF_NULL(sm);
     RETURN_ZERO_IF_NULL(key);
     RETURN_ZERO_IF_NULL(value);
@@ -134,17 +134,6 @@ boolean StringMap_AddExisting(StringMap* sm, StringPair* pair) {
     RETURN_ZERO_IF_NULL(pair);
     RETURN_ZERO_IF_NULL(pair->key);
     RETURN_ZERO_IF_NULL(pair->value);
-
-    /*
-        Check if there aren't an existing item with the given key.
-    */
-    StringPair* existing = StringMap_Get(sm, pair->key);
-
-    if (existing != NULL) {
-        StringMap_Remove(sm, existing->key);
-
-        StringPair_Delete(existing);
-    }
 
     _StringMapItem* item = (_StringMapItem*)malloc(sizeof(_StringMapItem));
 
@@ -206,7 +195,7 @@ void StringMap_AddFrom(StringMap* sm, StringMap* other) {
             RELEASE_IF_NOT_NULL(pair->value);
             pair->value = strclone(item->_data->value);
         } else {
-            StringMap_Add(sm, item->_data->key, item->_data->value);
+            StringMap_Set(sm, item->_data->key, item->_data->value);
         }
 
         item = item->_next;

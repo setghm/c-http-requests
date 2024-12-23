@@ -105,11 +105,13 @@ char* HttpRequest_ToString(HttpRequest* req) {
     char* headers_str = HttpHeaders_ToString(req->headers);
 
     if (headers_str) {
-        /*
-            Append the "\r\n" payload separator.
-        */
-        len += strlen(headers_str) + 2;
+        len += strlen(headers_str);
     }
+
+    /*
+        Append the "\r\n" payload separator (or request end).
+    */
+   len += 2;
 
     /*
         Allocate the string.
@@ -122,12 +124,10 @@ char* HttpRequest_ToString(HttpRequest* req) {
         /*
             Dump values.
         */
-        size_t i = 0;
-
-        i += sprintf(str, "%s\r\n", start_str);
-
         if (headers_str) {
-            sprintf(str + i, "%s\r\n", headers_str);
+            sprintf(str, "%s\r\n%s\r\n", start_str, headers_str);
+        } else {
+            sprintf(str, "%s\r\n\r\n", start_str);
         }
     }
 

@@ -84,6 +84,9 @@ boolean ClientSocket_Connect(ClientSocket* cs, const char* host, const u16 port)
     */
     cs->_source = (void*)s;
     cs->is_open = true;
+
+    cs->host = strclone(host);
+    cs->port = port;
 }
 
 ClientSocket* ClientSocket_Open(const char* host, u16 port) {
@@ -166,7 +169,7 @@ size_t ClientSocket_Write(ClientSocket* cs, const byte* buffer, size_t buffer_si
     return bytes_sent;
 }
 
-boolean ClientSocket_FinishWritting(ClientSocket* cs) {
+boolean ClientSocket_FinishWriting(ClientSocket* cs) {
     RETURN_ZERO_IF_NULL(cs);
 
     /*

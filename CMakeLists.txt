@@ -2,6 +2,10 @@ cmake_minimum_required (VERSION 3.8)
 
 project(requester VERSION 1.0 LANGUAGES C)
 
+#if (WIN32)
+#    set(CMAKE_TOOLCHAIN_FILE, "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+#endif()
+
 # MSVC hot reload.
 if (POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
@@ -30,7 +34,6 @@ list(APPEND CORE_SOURCE_FILES
     "src/core/utils/math.h"
 
     "src/core/network/network.h"
-    "src/core/network/certs_location.h"
     "src/core/network/client_socket.c"
     "src/core/network/client_socket.h"
     "src/core/network/secure_client_layer.c"

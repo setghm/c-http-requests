@@ -29,7 +29,7 @@ SecureClientLayer* SecureClientLayer_New(void);
 
 void SecureClientLayer_Delete(SecureClientLayer* scl);
 
-boolean SecureClientLayer_Connect(SecureClientLayer* scl, int fd);
+boolean SecureClientLayer_Connect(SecureClientLayer* scl, int fd, const char* hostname, u16 port);
 
 size_t SecureClientLayer_Read(const SecureClientLayer* scl, byte* buffer, size_t buffer_size);
 

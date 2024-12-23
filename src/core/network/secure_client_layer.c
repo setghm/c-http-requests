@@ -1,7 +1,7 @@
 #include "secure_client_layer.h"
-#include "certs_location.h"
 
 void SecureClientLayers_Init() {
+    SSL_library_init();
     SSL_load_error_strings();
     OpenSSL_add_ssl_algorithms();
 }
@@ -31,14 +31,14 @@ void SecureClientLayer_Delete(SecureClientLayer* scl) {
     free(scl);
 }
 
-boolean SecureClientLayer_Connect(SecureClientLayer* scl, const int fd) {
+boolean SecureClientLayer_Connect(SecureClientLayer* scl, const int fd, const char* hostname, u16 port) {
     /*
         Create SSL context.
     */
     const SSL_METHOD* method;
     int result;
 
-    method = SSLv23_client_method();
+    method = TLS_client_method();
 
     scl->_context = SSL_CTX_new(method);
 
@@ -51,16 +51,22 @@ boolean SecureClientLayer_Connect(SecureClientLayer* scl, const int fd) {
     /*
         Configure SSL context.
     */
-    result = SSL_CTX_load_verify_locations(scl->_context, CERTS_LOCATION, NULL);
+    SSL_CTX_set_verify(scl->_context, SSL_VERIFY_NONE, NULL);
+    
+    //if (!SSL_CTX_set_default_verify_paths(scl->_context)) {
+    //    print_log(LOG_ERROR, "SecureClientLayer", "Failed to set the default trusted certificate store");
+    //    ERR_print_errors_fp(stderr);
+    //    return false;
+    //}
 
-    if (!result) {
-        print_log(LOG_ERROR, "SecureClientLayer", "Failed to load CA certificates");
+    /*
+        Require TLS v1.2
+    */
+    if (!SSL_CTX_set_min_proto_version(scl->_context, TLS1_2_VERSION)) {
+        print_log(LOG_ERROR, "SecureClientLayer", "Failed to set the minimum TLS version");
         ERR_print_errors_fp(stderr);
         return false;
     }
-
-    SSL_CTX_set_verify(scl->_context, SSL_VERIFY_PEER, NULL);
-    SSL_CTX_set_verify_depth(scl->_context, 1);
 
     /*
         Create a new SSL struct to handle this connection.
@@ -78,9 +84,36 @@ boolean SecureClientLayer_Connect(SecureClientLayer* scl, const int fd) {
         return false;
     }
 
+    /*
+        Specify the target host.
+    */
+    if (!SSL_set_tlsext_host_name(scl->_ssl, hostname)) {
+        print_log(LOG_ERROR, "SecureClientLayer", "Failed to set the SNI hostname");
+        ERR_print_errors_fp(stderr);
+        return false;
+    }
+
+    /*
+        Ensure certificate for the target host.
+    */
+    if (!SSL_set1_host(scl->_ssl, hostname)) {
+        print_log(LOG_ERROR, "SecureClientLayer", "Failed to set the certificate verification hostname");
+        ERR_print_errors_fp(stderr);
+        return false;
+    }
+
+    /*
+        Do the handshake.
+    */
     if (SSL_connect(scl->_ssl) <= 0) {
         print_log(LOG_ERROR, "SecureClientLayer", "Cannot create a secure connection");
+
+        if (SSL_get_verify_result(scl->_ssl) != X509_V_OK) {
+            fprintf(stderr, "Verify error: %s\n", X509_verify_cert_error_string(SSL_get_verify_result(scl->_ssl)));
+        }
+
         ERR_print_errors_fp(stderr);
+
         return false;
     }
 
@@ -94,8 +127,9 @@ size_t SecureClientLayer_Read(const SecureClientLayer* scl, byte* buffer, const 
 
     const int bytes_read = SSL_read(scl->_ssl, buffer, (int)buffer_size);
 
-    if (bytes_read < 0) {
+    if (bytes_read <= 0) {
         print_log(LOG_ERROR, "SecureClientLayer", "Error while reading incoming data");
+        ERR_print_errors_fp(stderr);
         fprintf(stderr, "[ERROR][SecureClientLayer] Error code: %d\n", SSL_get_error(scl->_ssl, bytes_read));
         return 0;
     }

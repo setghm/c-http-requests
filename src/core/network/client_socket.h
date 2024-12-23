@@ -18,6 +18,10 @@ struct _ClientSocket {
     boolean is_read_only;
 
     SecureClientLayer* _secure_layer;
+
+    u16 port;
+
+    char* host;
 };
 
 ClientSocket* ClientSocket_New(void);

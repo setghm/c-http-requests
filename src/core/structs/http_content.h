@@ -117,7 +117,7 @@ size_t StreamContent_ReadToFile(const StreamContent* content, const char* file_n
     If "max_bytes_to send" is less than zero, the function will try to read the entire
     source content and will write it to the provided socket until the end.
 
-    If "max_bytes_to_send" is zero, no content will be sent.
+    If "max_bytes_to_send" is zero, no content will be send.
 */
 size_t StreamContent_Send(StreamContent* content, ClientSocket* cs, u64 max_bytes_to_send);
 

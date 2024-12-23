@@ -85,6 +85,9 @@ boolean ClientSocket_Connect(ClientSocket* cs, const char* host, const u16 port)
     cs->_source = (void*)fd;
     cs->is_open = true;
 
+    cs->host = strclone(host);
+    cs->port = port;
+
     return true;
 }
 

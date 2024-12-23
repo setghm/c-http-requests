@@ -4,7 +4,10 @@
 		{
 			"name": "default",
 			"generator": "Visual Studio 17 2022",
-			"binaryDir": "out"
+			"inherits": "vcpkg",
+			"environment": {
+				"VCPKG_ROOT": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\vcpkg"
+			}
 		}
 	]
 }

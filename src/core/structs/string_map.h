@@ -60,14 +60,14 @@ void StringMap_Delete(StringMap* sm);
 StringMap* StringMap_Clone(StringMap* sm);
 
 /*
-    Creates a new key-value string pair from the given key and value and adds
-    it to the map.
+    Sets the value to the given key and if the entry doesn't exists, it is
+    automatically created.
 
     If the provided key already exists in the map, its value is overwritten.
 
     The key and the value must be NULL-terminated strings.
 */
-boolean StringMap_Add(StringMap* sm, const char* key, const char* value);
+boolean StringMap_Set(StringMap* sm, const char* key, const char* value);
 
 /*
     Creates a new key-value string pair from the given key and value and adds
@@ -80,10 +80,10 @@ boolean StringMap_Add(StringMap* sm, const char* key, const char* value);
 boolean StringMap_AddIfNotExists(StringMap* sm, const char* key, const char* value);
 
 /*
-    Adds an existing key-value string pair to the map.
+    Adds an existing key-value string pair to the map without overriding
+    or deleting existing key-value pairs with the same key.
 
-    If any pair with the given key already exists in the map, the existing pair
-    is released and the new one is added.
+    Calling this function may result in duplication of keys.
 */
 boolean StringMap_AddExisting(StringMap* sm, StringPair* pair);
 

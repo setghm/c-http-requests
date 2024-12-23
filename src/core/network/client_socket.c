@@ -3,13 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if defined(_WIN32)
-
-#else
-
 #define SOCK_FD(scs) ((int)(BaseClientSocket(scs)->_source))
-
-#endif
 
 ClientSocket* ClientSocket_New(void) {
     ClientSocket* cs = (ClientSocket*)malloc(sizeof(ClientSocket));
@@ -37,7 +31,7 @@ boolean ClientSocket_MakeSecure(ClientSocket* cs) {
     /*
         Start SSL connection.
     */
-    const boolean secure_connected = SecureClientLayer_Connect(cs->_secure_layer, SOCK_FD(cs));
+    const boolean secure_connected = SecureClientLayer_Connect(cs->_secure_layer, SOCK_FD(cs), cs->host, cs->port);
 
     if (secure_connected == false) {
         print_log(LOG_ERROR, "ClientSocket", "Cannot start a secure connection");

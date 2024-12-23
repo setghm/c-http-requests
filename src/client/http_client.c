@@ -71,7 +71,9 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     if (req_str != NULL) {
         const size_t req_str_size = strlen(req_str);
 
-        ClientSocket_Write(client, (const byte*)req_str, req_str_size);
+        size_t bytes_written = ClientSocket_Write(client, (const byte*)req_str, req_str_size);
+
+        printf("%d bytes sent\n", bytes_written);
 
         free(req_str);
     }
@@ -86,7 +88,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     /*
         Close this socket peer.
     */
-    ClientSocket_FinishWriting(client);
+    //ClientSocket_FinishWriting(client);
 
     /*
         Get the response.
@@ -155,7 +157,7 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
     /*
         Create a new StreamContent for the response, and set the client socket as source.
 
-            The socket remains opened until the response structure is deleted.
+        The socket remains opened until the response structure is deleted.
     */
     res->content = StreamContent_New(client);
 

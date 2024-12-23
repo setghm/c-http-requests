@@ -10,8 +10,8 @@ int main(void) {
 	/*
 		Create a new http request and send it.
 	*/
-	//HttpResponse* res = HttpClient_Get("https://www.google.com/search?q=http+client");
-	HttpResponse* res = HttpClient_Get("https://archlinux.org/packages/?q=aqua");
+	HttpResponse* res = HttpClient_Get("https://www.google.com/search?q=http+client");
+	//HttpResponse* res = HttpClient_Get("https://archlinux.org/packages/?q=aqua");
 
 	if (res == HTTP_INVALID_RESPONSE) {
 		puts("Cannot get the HttpResponse");
@@ -45,13 +45,11 @@ int main(void) {
 
 	do {
 
-		bytes_read = StreamContent_Read(res->content, buffer, 256);
+		bytes_read = StreamContent_Read(res->content, (const byte*)buffer, 256);
 
-		if (bytes_read > 0) {
-			fputs(buffer, stdout);
-		}
+		fputs(buffer, stdout);
 
-	} while (bytes_read == 256);
+	} while (bytes_read > 0);
 
 	puts("\n------- Http response content end -------\n");
 

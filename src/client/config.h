@@ -5,6 +5,6 @@
 
 #define DEFAULT_ACCEPT_ENCODING "gzip,deflate,br"
 #define DEFAULT_ACCEPT "*/*"
-#define DEFAULT_CONNECTION "keep-alive"
+#define DEFAULT_CONNECTION "close"
 
 #endif
