@@ -8,10 +8,25 @@ int main(void) {
 	HttpClient_Init();
 
 	/*
+		Read a URL from stdin.
+	*/
+	char url[2048] = { 0 };
+
+	do {
+		fputs("Write the URL: ", stdout);
+		fgets(url, 2048, stdin);
+
+		/*
+			Remove the new line character.
+		*/
+		url[strcspn(url, "\n")] = '\0';
+
+	} while (strlen(url) == 0);
+
+	/*
 		Create a new http request and send it.
 	*/
 	HttpResponse* res = HttpClient_Get("https://www.google.com/search?q=http+client");
-	//HttpResponse* res = HttpClient_Get("https://archlinux.org/packages/?q=aqua");
 
 	if (res == HTTP_INVALID_RESPONSE) {
 		puts("Cannot get the HttpResponse");

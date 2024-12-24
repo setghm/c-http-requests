@@ -126,6 +126,49 @@ size_t StreamContent_Read(const StreamContent* content, const byte* buffer, cons
     return ClientSocket_Read(content->_source, buffer, buffer_size);
 }
 
+char* StreamContent_ReadAsString(const StreamContent* content) {
+    RETURN_NULL_IF_NULL(content);
+
+    /*
+        Read all the content into a string buffer.
+    */
+    size_t total_bytes_read = 0;
+    size_t bytes_read = 0;
+    size_t buffer_size = 0;
+    size_t last_total = 0;
+    char recv_buffer[1024] = { 0 };
+    char* buffer = NULL;
+
+    do {
+        bytes_read = ClientSocket_Read(content->_source, recv_buffer, 1024);
+
+        last_total = total_bytes_read;
+        total_bytes_read += bytes_read;
+
+        /*
+            Reallocate the buffer if needed.
+        */
+        if (total_bytes_read > buffer_size) {
+            buffer_size += bytes_read + 1;
+
+            char* new_buffer = (buffer == 0) ?
+                (char*)malloc(buffer_size) :
+                (char*)realloc(buffer, buffer_size);
+
+            BREAK_IF_NULL(new_buffer);
+
+            buffer = new_buffer;
+
+            buffer[buffer_size - 1] = '\0';
+        }
+
+        strncpy(buffer + last_total, recv_buffer, bytes_read);
+
+    } while (bytes_read > 0);
+
+    return buffer;
+}
+
 size_t StreamContent_ReadToFile(const StreamContent* content, const char* file_name) {
     RETURN_ZERO_IF_NULL(content);
     RETURN_ZERO_IF_NULL(file_name);

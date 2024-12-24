@@ -140,9 +140,11 @@ URL* URL_ParseNew(const char* src) {
     }
     else {
         /*
-            Malformed URL.
+            Set default protocol to HTTPS.
         */
-        return url;
+        url->protocol = URL_PROTOCOL_HTTPS;
+
+        host_start = buffer;
     }
 
     /*

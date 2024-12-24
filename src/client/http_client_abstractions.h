@@ -5,13 +5,13 @@
 
 HttpResponse* HttpClient_Get(const char* url);
 
-HttpResponse* HttpClient_Post(const char* url, const char* data, size_t data_length);
+HttpResponse* HttpClient_Post(const char* url, const char* data, MIMEType content_type);
 
-HttpResponse* HttpClient_PostFile(const char* url, const char* file_name);
+HttpResponse* HttpClient_PostFile(const char* url, const char* file_name, MIMEType content_type);
 
-HttpResponse* HttpClient_Put(const char* url, const char* data, size_t data_length);
+HttpResponse* HttpClient_Put(const char* url, const char* data, MIMEType content_type);
 
-HttpResponse* HttpClient_PutFile(const char* url, const char* file_name);
+HttpResponse* HttpClient_PutFile(const char* url, const char* file_name, MIMEType content_type);
 
 HttpResponse* HttpClient_Delete(const char* url);
 

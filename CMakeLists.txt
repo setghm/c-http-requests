@@ -2,10 +2,6 @@ cmake_minimum_required (VERSION 3.8)
 
 project(requester VERSION 1.0 LANGUAGES C)
 
-#if (WIN32)
-#    set(CMAKE_TOOLCHAIN_FILE, "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
-#endif()
-
 # MSVC hot reload.
 if (POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
@@ -98,8 +94,6 @@ list(APPEND HELPERS_SOURCE_FILES
 )
 
 list(APPEND SOURCE_FILES
-    "main.c"
-
     "src/requester.h"
 
     ${CORE_SOURCE_FILES}
@@ -107,19 +101,34 @@ list(APPEND SOURCE_FILES
     ${HELPERS_SOURCE_FILES}
 )
 
-add_executable (requester ${SOURCE_FILES})
+# Add the library as a dynamic library, to avoid this, define the
+# REQUESTER_BUILD_STATIC variable.
 
-# Setup internal include directories.
+if (NOT DEFINED REQUESTER_BUILD_STATIC)
+    add_library (requester ${SOURCE_FILES})
+else()
+    add_library (requester STATIC ${SOURCE_FILES})
+endif()
+
 target_include_directories(requester PUBLIC "src" "src/core")
 
-# Link OpenSSL.
 target_link_libraries(requester PRIVATE OpenSSL::SSL)
 
-# Link platform-specific libraries.
 if (WIN32)
     target_link_libraries(requester PRIVATE ws2_32)
 endif()
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET requester PROPERTY C_STANDARD 90)
+endif()
+
+# Build examples.
+#
+# To avoid building examples by default, define the REQUESTER_DONT_BUILD_EXAMPLES
+# variable.
+
+if(NOT DEFINED REQUESTER_DONT_BUILD_EXAMPLES)
+    
+    add_subdirectory(examples)
+
 endif()

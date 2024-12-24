@@ -106,6 +106,8 @@ void StreamContent_Delete(StreamContent* content);
 
 size_t StreamContent_Read(const StreamContent* content, const byte* buffer, size_t buffer_size);
 
+char* StreamContent_ReadAsString(const StreamContent* content);
+
 size_t StreamContent_ReadToFile(const StreamContent* content, const char* file_name);
 
 /*

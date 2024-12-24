@@ -1,5 +1,14 @@
 #include "secure_client_layer.h"
 
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
+struct _SecureClientLayer {
+    SSL_CTX* _context;
+
+    SSL* _ssl;
+};
+
 void SecureClientLayers_Init() {
     SSL_library_init();
     SSL_load_error_strings();
@@ -127,7 +136,7 @@ size_t SecureClientLayer_Read(const SecureClientLayer* scl, byte* buffer, const 
 
     const int bytes_read = SSL_read(scl->_ssl, buffer, (int)buffer_size);
 
-    if (bytes_read <= 0) {
+    if (bytes_read < 0) {
         print_log(LOG_ERROR, "SecureClientLayer", "Error while reading incoming data");
         ERR_print_errors_fp(stderr);
         fprintf(stderr, "[ERROR][SecureClientLayer] Error code: %d\n", SSL_get_error(scl->_ssl, bytes_read));

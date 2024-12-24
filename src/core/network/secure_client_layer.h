@@ -1,9 +1,6 @@
 #ifndef _REQUESTER_NETWORK_SECURE_CLIENT_LAYER_H
 #define _REQUESTER_NETWORK_SECURE_CLIENT_LAYER_H
 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-
 // requester
 #include <utils/utils.h>
 
@@ -14,12 +11,6 @@
     if (cs->_secure_layer) return SecureClientLayer_Write(cs->_secure_layer, buffer, buffer_size)
 
 typedef struct _SecureClientLayer SecureClientLayer;
-
-struct _SecureClientLayer {
-    SSL_CTX* _context;
-
-    SSL* _ssl;
-};
 
 void SecureClientLayers_Init();
 

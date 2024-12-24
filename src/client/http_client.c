@@ -73,7 +73,9 @@ HttpResponse* HttpClient_Send(HttpRequest* req) {
 
         size_t bytes_written = ClientSocket_Write(client, (const byte*)req_str, req_str_size);
 
-        printf("%d bytes sent\n", bytes_written);
+#ifdef DEBUG
+        fprintf(stderr, "[DEBUG][HttpClient] %d bytes sent of request head.\n", bytes_written);
+#endif
 
         free(req_str);
     }
